@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Main KPIs FM — First Mile MLB</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  /* ── Brand ─────────────────────────────────────────────── */
+  --brand-yellow: #FFE600;
+  --brand-navy:   #1A1A2E;
+
+  /* ── Semantic color system (ref: Ahrefs + Paylocity) ───── */
+  /* Positivo: verde sólido para bom, suave para ok */
+  --c-good:       #16A34A;   /* verde escuro — ótimo, acima da meta */
+  --c-good-mid:   #22C55E;   /* verde médio — ok, dentro do range */
+  --c-good-bg:    #F0FDF4;   /* fundo suave verde */
+  --c-good-border:#BBF7D0;   /* borda verde */
+
+  /* Atenção: âmbar */
+  --c-warn:       #D97706;   /* âmbar escuro — atenção, perto do limite */
+  --c-warn-mid:   #F59E0B;   /* âmbar médio */
+  --c-warn-bg:    #FFFBEB;   /* fundo suave âmbar */
+  --c-warn-border:#FDE68A;   /* borda âmbar */
+
+  /* Crítico: vermelho */
+  --c-bad:        #DC2626;   /* vermelho escuro — crítico, ação imediata */
+  --c-bad-mid:    #EF4444;   /* vermelho médio */
+  --c-bad-bg:     #FEF2F2;   /* fundo suave vermelho */
+  --c-bad-border: #FECACA;   /* borda vermelha */
+
+  /* Neutro/Volume: azul-teal */
+  --c-vol:        #0EA5E9;   /* azul claro — volume, neutro */
+  --c-teal:       #0D9488;   /* teal — OT, pontualidade */
+  --c-purple:     #7C3AED;   /* roxo — aderência, perfil */
+  --c-blue:       #3B82F6;   /* azul padrão — links, interativo */
+  --c-blue-bg:    #EFF6FF;
+  --c-orange:     #F97316;   /* laranja — upgrade, aviso */
+
+  /* ── Neutros (fundo, bordas, texto) ──────────────────── */
+  --bg:           #F8F9FA;   /* fundo geral — quase branco, não cinza forte */
+  --white:        #FFFFFF;
+  --border:       #E5E7EB;   /* bordas sutis */
+  --border-lt:    #F3F4F6;   /* bordas muito suaves */
+  --text:         #111827;   /* texto primário — quase preto */
+  --mid:          #6B7280;   /* texto secundário — cinza médio */
+  --light:        #9CA3AF;   /* texto terciário — cinza claro */
+  --row-hover:    #F9FAFB;   /* hover de linha de tabela */
+
+  /* ── Aliases legado (não alterar — usado no JS) ──────── */
+  --primary:      #FFE600;
+  --hdr:          #1A1A2E;
+  --green:        #16A34A; --green-lt:#F0FDF4; --green-dk:#15803D;
+  --red:          #DC2626; --red-lt:#FEF2F2;
+  --amber:        #D97706; --amber-lt:#FFFBEB;
+  --blue:         #3B82F6; --blue-lt:#EFF6FF;
+  --ml-green:     #16A34A;
+  --ml-red:       #DC2626;
+  --ml-blue:      #3B82F6;
+  --ml-gray-1:    #111827;
+  --ml-gray-2:    #6B7280;
+  --ml-gray-3:    #9CA3AF;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);font-size:12px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── HEADER ───────────────────────────────────────────── */
+.main-header{
+  background:var(--hdr);
+  border-top:3px solid var(--brand-yellow);
+  padding:0 28px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo-area{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:34px;height:34px;background:var(--brand-yellow);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;color:var(--hdr);flex-shrink:0;
+  letter-spacing:-.5px;
+}
+.title-block h1{font-size:15px;font-weight:700;color:#fff;letter-spacing:.1px}
+.title-block .subtitle{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px}
+.update-block{display:flex;align-items:center;gap:10px}
+.update-badge{
+  background:var(--brand-yellow);color:var(--hdr);
+  font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;
+  letter-spacing:.3px;
+}
+.update-info{text-align:right;color:rgba(255,255,255,.5);font-size:10px;line-height:1.5}
+.update-info .date{color:#fff;font-weight:600;font-size:11px}
+
+/* ── TAB NAV ──────────────────────────────────────────── */
+.tab-nav{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;
+  box-shadow:0 1px 0 var(--border);
+  position:sticky;top:0;z-index:10;
+}
+.tab-btn{
+  padding:12px 16px;font-size:11.5px;font-weight:500;color:var(--mid);
+  border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .15s,border-color .15s;white-space:nowrap;
+  letter-spacing:.1px;
+}
+.tab-btn.active{color:var(--text);font-weight:600;border-bottom-color:var(--brand-yellow)}
+.tab-btn:hover:not(.active){color:var(--text);background:var(--bg)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+.content{max-width:1440px;margin:0 auto;padding:20px 24px 48px}
+.section-label{
+  font-size:10px;font-weight:600;color:var(--light);
+  text-transform:uppercase;letter-spacing:.8px;
+  margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.status-bar{
+  background:var(--white);border:1px solid var(--border);border-radius:8px;
+  padding:8px 14px;margin-bottom:14px;font-size:11px;color:var(--mid);
+  display:flex;align-items:center;gap:8px;
+}
+.status-bar::before{content:'●';color:var(--c-good);font-size:8px}
+.note-bar{
+  background:var(--c-blue-bg);border:1px solid #BFDBFE;border-radius:8px;
+  padding:10px 14px;margin-bottom:16px;font-size:11px;color:#1D4ED8;
+  display:flex;align-items:flex-start;gap:8px;line-height:1.6;
+}
+
+/* ── KPI TILES ────────────────────────────────────────── */
+.filter-bar{
+  background:var(--white);border:1px solid var(--border);border-radius:8px;
+  padding:8px 14px;margin-bottom:12px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.filter-group{
+  display:flex;align-items:center;gap:5px;cursor:pointer;
+  padding:4px 10px;border:1px solid var(--border);border-radius:6px;
+  background:var(--white);transition:background .12s;
+}
+.filter-group:hover{background:var(--bg)}
+.filter-label{font-size:11px;color:var(--mid);font-weight:500}
+.filter-value{font-size:11px;color:var(--text);font-weight:600}
+.filter-caret{font-size:8px;color:var(--light)}
+.filter-sep{width:1px;height:20px;background:var(--border)}
+
+.kpi-row{
+  display:grid;grid-template-columns:repeat(8,1fr);gap:0;
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+  margin-bottom:8px;background:var(--white);
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.kpi-tile{
+  padding:14px 16px;border-right:1px solid var(--border);
+  background:var(--white);transition:background .12s;position:relative;
+}
+.kpi-tile:last-child{border-right:none}
+.kpi-tile:hover{background:#FAFAFA}
+.kpi-tile-label{font-size:10px;color:var(--mid);font-weight:500;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-tile-value{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.5px;line-height:1}
+.kpi-tile-value.kpi-vol{font-size:17px;font-weight:600;color:var(--text)}
+.kpi-tile-value.ml-green{color:var(--c-good)}
+.kpi-tile-value.ml-red{color:var(--c-bad)}
+.kpi-tile-value.ml-blue{color:var(--c-blue)}
+
+/* target bar dentro do tile */
+.kpi-target{display:flex;align-items:center;gap:5px;margin-top:7px;font-size:9.5px;color:var(--light)}
+.kpi-target .bar-track{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.kpi-target .bar-fill{height:100%;border-radius:2px}
+
+/* ── CARDS E CHARTS ───────────────────────────────────── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.chart-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.chart-sub{font-size:10px;color:var(--light);margin-bottom:12px;line-height:1.4}
+.filter-btn{
+  background:var(--brand-yellow);color:var(--hdr);border:none;
+  padding:6px 12px;border-radius:4px;font-size:10px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:4px;
+  transition:all 150ms ease;
+}
+.filter-btn:hover{opacity:0.85;box-shadow:0 2px 8px rgba(255,230,0,0.3)}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap-240{position:relative;height:240px}
+.chart-wrap-260{position:relative;height:260px}
+.chart-wrap-320{position:relative;height:320px}
+.chart-wrap-420{position:relative;height:420px}
+.legend-row{display:flex;align-items:center;gap:14px;margin-top:8px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mid)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.leg-line-dashed{width:16px;height:2px;border-top:2px dashed;flex-shrink:0}
+
+/* ── KPI CARDS (abas) ─────────────────────────────────── */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px 12px;transition:box-shadow .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.kpi-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.kpi-label{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.kpi-value{font-size:26px;font-weight:800;line-height:1;letter-spacing:-1px}
+.kpi-sub{font-size:10px;color:var(--mid);margin-top:5px}
+.kpi-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:4px}
+
+/* ── DELTA INLINE (estilo Paylocity) ─────────────────── */
+/* Pequeno texto colorido sem fundo pesado */
+.delta-pos{color:var(--c-good);font-weight:600;font-size:10.5px}
+.delta-neg{color:var(--c-bad);font-weight:600;font-size:10.5px}
+.delta-warn{color:var(--c-warn);font-weight:600;font-size:10.5px}
+
+/* ── SCORE BADGES (estilo Ahrefs A/B/C) ─────────────── */
+.score-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;
+  font-size:9.5px;font-weight:800;flex-shrink:0;
+}
+.score-a{background:#DCFCE7;color:#15803D}
+.score-b{background:#FEF9C3;color:#854D0E}
+.score-c{background:#FEE2E2;color:#991B1B}
+
+/* ── PROGRESS BAR FINA (estilo Ahrefs) ──────────────── */
+.prog-bar{display:flex;align-items:center;gap:6px}
+.prog-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;min-width:40px}
+.prog-fill{height:100%;border-radius:2px;transition:width .3s}
+.prog-val{font-size:10px;color:var(--mid);min-width:32px;text-align:right}
+
+/* ── TABLES ───────────────────────────────────────────── */
+.table-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:16px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.table-header{padding:12px 16px 10px;border-bottom:1px solid var(--border)}
+.table-header h3{font-size:12px;font-weight:600;color:var(--text)}
+.table-header p{font-size:10px;color:var(--light);margin-top:2px}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{
+  background:var(--bg);padding:8px 12px;
+  font-size:10px;font-weight:600;color:var(--light);
+  text-transform:uppercase;letter-spacing:.5px;
+  text-align:left;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+td{padding:8px 12px;font-size:11.5px;border-bottom:1px solid var(--border-lt);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--row-hover)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.rank{font-size:10px;color:var(--light);font-weight:600}
+.sem-row td{background:#FFFBEB!important;font-style:italic}
+
+/* ── PILLS ────────────────────────────────────────────── */
+.pill{display:inline-block;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:6px}
+.pill-green{background:var(--c-good-bg);color:var(--c-good)}
+.pill-amber{background:var(--c-warn-bg);color:var(--c-warn)}
+.pill-red{background:var(--c-bad-bg);color:var(--c-bad)}
+.pill-blue{background:var(--c-blue-bg);color:var(--c-blue)}
+.pill-gray{background:var(--bg);color:var(--mid)}
+
+/* mini barra em célula de tabela */
+.pct-bar{display:flex;align-items:center;gap:6px}
+.mini-bar-track{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0}
+.mini-bar-fill{height:100%;border-radius:2px}
+.outlier-badge{display:inline-block;font-size:9px;font-weight:600;background:var(--c-bad-bg);color:var(--c-bad);padding:1px 5px;border-radius:4px;margin-left:4px}
+
+/* ── IMPACT / ADERÊNCIA CARDS ─────────────────────────── */
+.impact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.impact-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px;transition:box-shadow .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.impact-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.impact-card.alert{border-color:var(--c-bad-border);background:var(--c-bad-bg)}
+.impact-label{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.impact-value{font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1}
+.impact-sub{font-size:10px;color:var(--mid);margin-top:4px}
+.impact-badge{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:6px;margin-top:5px}
+
+/* ── ADH CARDS (Aba 5) ───────────────────────────────── */
+.adh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.adh-card{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;
+  padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+/* Accent line esquerda no card — estilo Paylocity */
+.adh-card.above{border-left:4px solid var(--c-good)}
+.adh-card.below{border-left:4px solid var(--c-bad)}
+.adh-card.good{ border-left:4px solid var(--c-good)}
+.adh-kpi-name{font-size:10.5px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.6px}
+.adh-real{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.adh-meta{font-size:10.5px;color:var(--mid)}
+.adh-delta{font-size:12px;font-weight:700;padding:3px 10px;border-radius:16px;margin-top:2px}
+.adh-delta.pos{background:var(--c-good-bg);color:var(--c-good)}
+.adh-delta.neg{background:var(--c-bad-bg);color:var(--c-bad)}
+.adh-delta.pos-inv{background:var(--c-good-bg);color:var(--c-good)}
+.adh-status{font-size:10.5px;font-weight:700}
+.adh-chart-wrap{width:160px;height:160px;position:relative}
+.gauge-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.gauge-pct{font-size:20px;font-weight:800;line-height:1}
+.gauge-sub{font-size:9px;color:var(--mid);margin-top:2px}
+
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.sum-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.sum-label{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.sum-value{font-size:24px;font-weight:800;line-height:1}
+.sum-sub{font-size:10px;color:var(--mid);margin-top:4px}
+
+/* ── COLOR HELPERS ────────────────────────────────────── */
+.green{color:var(--c-good)}  .green-bg{background:var(--c-good-bg);color:var(--c-good)}
+.red{color:var(--c-bad)}     .red-bg{background:var(--c-bad-bg);color:var(--c-bad)}
+.amber{color:var(--c-warn)}  .amber-bg{background:var(--c-warn-bg);color:var(--c-warn)}
+.blue{color:var(--c-blue)}   .blue-bg{background:var(--c-blue-bg);color:var(--c-blue)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* ── GLOSSÁRIO ────────────────────────────────────────── */
+.acc-item{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;transition:background .12s}
+.acc-header:hover{background:var(--bg)}
+.acc-header-left{display:flex;align-items:center;gap:10px}
+.acc-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.acc-title{font-size:12px;font-weight:600;color:var(--text)}
+.acc-subtitle{font-size:10px;color:var(--mid);margin-top:1px}
+.acc-arrow{font-size:10px;color:var(--light);transition:transform .2s;font-weight:700}
+.acc-item.open .acc-arrow{transform:rotate(180deg)}
+.acc-body{display:none;padding:0 16px 14px;border-top:1px solid var(--border-lt)}
+.acc-item.open .acc-body{display:block}
+.term-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.term-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.term-card.full{grid-column:1/-1}
+.term-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.term-tag{display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle}
+.tag-blue{background:var(--c-blue-bg);color:var(--c-blue)}
+.tag-green{background:var(--c-good-bg);color:var(--c-good)}
+.tag-amber{background:var(--c-warn-bg);color:var(--c-warn)}
+.tag-red{background:var(--c-bad-bg);color:var(--c-bad)}
+.tag-gray{background:var(--bg);color:var(--mid)}
+.term-def{font-size:11px;color:var(--text);line-height:1.6;margin-bottom:4px}
+.term-formula{font-family:'Courier New',monospace;font-size:10px;background:#F8FAFF;border:1px solid #E0E7FF;border-radius:5px;padding:5px 8px;color:#3730A3;margin-top:5px;word-break:break-word}
+.term-note{font-size:10px;color:var(--mid);font-style:italic;margin-top:4px}
+.info-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-lt)}
+.info-row:last-child{border-bottom:none}
+.info-key{font-size:10.5px;font-weight:600;color:var(--text);min-width:200px;flex-shrink:0}
+.info-val{font-size:11px;color:var(--mid);flex:1;line-height:1.6}
+.info-val code{font-family:'Courier New',monospace;font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px;color:#374151}
+.sem-alert{background:var(--c-warn-bg);border:1px solid var(--c-warn-border);border-left:3px solid var(--c-warn);border-radius:8px;padding:12px 14px;margin-top:10px}
+.sem-alert strong{color:#92400E}
+.sem-alert p{font-size:11px;color:#78350F;line-height:1.6;margin-top:3px}
+.color-table{width:100%;border-collapse:collapse;margin-top:10px}
+.color-table th{background:var(--bg);padding:7px 10px;font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--border)}
+.color-table td{padding:7px 10px;font-size:11.5px;border-bottom:1px solid var(--border-lt)}
+</style>
+</head>
+<body>
+
+<!-- HEADER: único, no topo -->
+<header class="main-header">
+  <div class="logo-area">
+    <div class="logo-icon">FM</div>
+    <div class="title-block">
+      <h1>Main KPIs — First Mile MLB</h1>
+      <div class="subtitle">Painel de Pickup Success &amp; Volume · CCO Analytics</div>
+    </div>
+  </div>
+  <div class="update-block">
+    <div class="update-info">
+      <div>Referência</div>
+      <div class="date">2026-04-08</div>
+    </div>
+    <div class="update-badge">D-1</div>
+  </div>
+</header>
+
+<!-- TAB NAV: único, sticky -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab(0)">Volume &amp; Quality</button>
+  <button class="tab-btn" onclick="showTab(1)">Evolução KPIs</button>
+  <button class="tab-btn" onclick="showTab(2)">Deep Pickup Success</button>
+  <button class="tab-btn" onclick="showTab(3)">Cubo No Pickup</button>
+  <button class="tab-btn" onclick="showTab(4)">Aderência Perfil</button>
+  <button class="tab-btn" onclick="showTab(5)">Glossário</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 1 — Volume & Quality  (layout Tableau + ML colors)
+════════════════════════════════════════════════════════════ -->
+<div id="pane-0" class="tab-pane active">
+<main class="content">
+
+  <!-- ROW 1: KPIs de % — dinâmico de NATIONAL + TARGETS — preenchido por initAba1() -->
+  <div id="kpi-row-pct" class="kpi-row" style="margin-bottom:8px"></div>
+
+  <!-- ROW 2: Volumes — dinâmico de NATIONAL — preenchido por initAba1() -->
+  <div id="kpi-row-vol" class="kpi-row"></div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid" style="margin-top:16px">
+    <div class="chart-card">
+      <div class="chart-title">% Pickup Success por Hub (Top 15)</div>
+      <div class="chart-sub">CROSS_DOCKING · D-1 · 2026-04-08</div>
+      <div class="chart-wrap-260"><canvas id="c1-facility"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Volume por Carrier (Top 10)</div>
+      <div class="chart-sub">Estimados elegíveis por transportadora · D-1</div>
+      <div class="chart-wrap-260"><canvas id="c1-carrier"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Detalhamento por Hub (Facility)</h3>
+      <p>Ordenado por volume · D-1 · 2026-04-08 · SEM_FACILITY inclusa</p>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Hub</th>
+            <th class="num">Estimados</th>
+            <th class="num">Coletados</th>
+            <th class="num">No Pickup</th>
+            <th>PUS %</th>
+            <th>OT %</th>
+          </tr>
+        </thead>
+        <tbody id="t1-facility"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 2 — Evolução KPIs
+════════════════════════════════════════════════════════════ -->
+<div id="pane-1" class="tab-pane">
+<main class="content">
+
+  <div class="status-bar">Jan/2025 – Dez/2025 · Dados reais BQ · DM_SHP_XD_PICKUP · XD_DROP_OFF + CROSS_DOCKING · MLB</div>
+
+  <!-- Linha 1: Pickup Success -->
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+    <div class="chart-card" style="padding:16px">
+      <div style="font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Pickup Success</div>
+      <div style="font-size:34px;font-weight:800;color:var(--ml-green);letter-spacing:-1px;line-height:1.1" id="a2-pus-val">—</div>
+      <div style="font-size:10px;color:var(--mid);margin-top:4px">Meta Q2: 92,6%</div>
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
+        <div style="font-size:9px;color:var(--light)">Estimados</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)" id="a2-pus-est">—</div>
+        <div style="font-size:9px;color:var(--light);margin-top:4px">Coletados PU</div>
+        <div style="font-size:12px;font-weight:700;color:var(--ml-green)" id="a2-pus-col">—</div>
+      </div>
+    </div>
+    <div class="chart-card" style="padding:12px 16px">
+      <div style="height:150px;position:relative"><canvas id="c2-pus-line"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Linha 2: Pickup Success On Time -->
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+    <div class="chart-card" style="padding:16px">
+      <div style="font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Pickup Success On Time</div>
+      <div style="font-size:34px;font-weight:800;color:#0EA5E9;letter-spacing:-1px;line-height:1.1" id="a2-ot-val">—</div>
+      <div style="font-size:10px;color:var(--mid);margin-top:4px">Meta Q2: 82,1%</div>
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
+        <div style="font-size:9px;color:var(--light)">Coletados On Time</div>
+        <div style="font-size:12px;font-weight:700;color:#0EA5E9" id="a2-ot-ontime">—</div>
+      </div>
+    </div>
+    <div class="chart-card" style="padding:12px 16px">
+      <div style="height:150px;position:relative"><canvas id="c2-ot-line"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Linha 3: No Pickup -->
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+    <div class="chart-card" style="padding:16px">
+      <div style="font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">No Pickup</div>
+      <div style="font-size:34px;font-weight:800;color:#DC2626;letter-spacing:-1px;line-height:1.1" id="a2-np-val">—</div>
+      <div style="font-size:10px;color:var(--mid);margin-top:4px">Meta Q2: 7,4%</div>
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
+        <div style="font-size:9px;color:var(--light)">Não Coletados</div>
+        <div style="font-size:12px;font-weight:700;color:#DC2626" id="a2-np-naoCol">—</div>
+        <div style="height:68px;margin-top:8px;position:relative"><canvas id="c2-np-pie"></canvas></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px"><div style="width:7px;height:7px;border-radius:50%;background:#0EA5E9"></div><span>Meli <b id="a2-culp-meli">—</b></span></div>
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px"><div style="width:7px;height:7px;border-radius:50%;background:#F59E0B"></div><span>Seller <b id="a2-culp-seller">—</b></span></div>
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px"><div style="width:7px;height:7px;border-radius:50%;background:#16A34A"></div><span>Place <b id="a2-culp-place">—</b></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card" style="padding:12px 16px">
+      <div style="height:150px;position:relative"><canvas id="c2-np-line"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Linha 4: Pontualidade -->
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+    <div class="chart-card" style="padding:16px">
+      <div style="font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Pontualidade</div>
+      <div style="font-size:34px;font-weight:800;color:#0D9488;letter-spacing:-1px;line-height:1.1" id="a2-pont-val">—</div>
+      <div style="font-size:10px;color:var(--mid);margin-top:4px">Tableau: Paradas On Time / Concluídas</div>
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
+        <div style="font-size:9px;color:var(--light)">Paradas Concluídas</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)" id="a2-pont-col">—</div>
+        <div style="font-size:9px;color:var(--light);margin-top:4px">Paradas On Time</div>
+        <div style="font-size:12px;font-weight:700;color:#0D9488" id="a2-pont-ontime">—</div>
+      </div>
+    </div>
+    <div class="chart-card" style="padding:12px 16px">
+      <div style="height:150px;position:relative"><canvas id="c2-pont-line"></canvas></div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 3 — Deep Pickup Success
+════════════════════════════════════════════════════════════ -->
+<div id="pane-2" class="tab-pane">
+<main class="content">
+
+  <div class="status-bar">2026-04-08 · DM_SHP_XD_PICKUP · XD_DROP_OFF + CROSS_DOCKING · MLB</div>
+
+  <!-- Seção 1: Pickup Success -->
+  <div class="section-label">Pickup Success</div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:16px;margin-bottom:20px">
+    <div class="chart-card" style="display:flex;flex-direction:column;justify-content:center;gap:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.6px">PUS Acum. Tableau</div>
+      <div style="font-size:9px;color:var(--c-warn,#D97706);margin-top:2px">⚠ escopo a confirmar</div>
+      <div style="font-size:36px;font-weight:800;color:var(--ml-green);letter-spacing:-1px" id="e3-pus-val">—</div>
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:10px;color:var(--light);margin-bottom:4px">Estimados</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)" id="e3-est-val">—</div>
+        <div style="font-size:10px;color:var(--light);margin-top:6px;margin-bottom:4px">Coletados PU</div>
+        <div style="font-size:13px;font-weight:700;color:var(--ml-green)" id="e3-col-val">—</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Pickup Success Acumulado por mês</div>
+      <div class="chart-sub">Meta: 91,80% · Ponto laranja = mês mais recente</div>
+      <div class="chart-wrap-260"><canvas id="c3-evol-pus-line"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Seção 2: Gap Pickup Success x Meta -->
+  <div class="section-label">Gap Pickup Success x Meta</div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:16px;margin-bottom:20px">
+    <div class="chart-card" style="display:flex;flex-direction:column;justify-content:center;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div><div style="font-size:9px;color:var(--light)">Meta</div><div style="font-size:22px;font-weight:800;color:var(--text)">91,80%</div></div>
+        <div><div style="font-size:9px;color:var(--light)">Gap</div><div style="font-size:22px;font-weight:800" id="e3-gap-val">—</div></div>
+      </div>
+      <div style="height:90px;position:relative"><canvas id="c3-evol-gap-donut"></canvas></div>
+      <div style="font-size:10px;color:var(--mid);text-align:center" id="e3-gap-status">—</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Gap por Mês</div>
+      <div class="chart-sub">Verde = acima da meta · Vermelho = abaixo · pp</div>
+      <div class="chart-wrap-260"><canvas id="c3-evol-gap-bar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Seção 3: Contribution Pickup Success -->
+  <div class="section-label">Contribution Pickup Success</div>
+  <div class="charts-grid" style="margin-bottom:16px">
+    <div class="chart-card">
+      <div class="chart-title">PUS (%) por Regional</div>
+      <div class="chart-wrap-260"><canvas id="c3-evol-reg-pus"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Contribution (%) Waterfall</div>
+      <div class="chart-wrap-320"><canvas id="c3-evol-reg-contrib"></canvas></div>
+    </div>
+  </div>
+  <div class="table-card" style="margin-bottom:20px">
+    <div class="table-header">
+      <h3>PUS % por Regional — YTD 2026</h3>
+      <p>Meta: 91,80%</p>
+    </div>
+    <div class="tbl-scroll"><table id="t3-evol-regional"></table></div>
+  </div>
+
+  <!-- Seção 4: Top Offenders por Hub -->
+  <div class="section-label">Top Offenders Contribution (%) por Hub</div>
+  <div class="table-card" style="margin-bottom:20px">
+    <div class="table-header">
+      <h3>Contribuição por Hub / Facility</h3>
+      <p>Ordenado por Contribution abs desc · Meta: 91,80%</p>
+    </div>
+    <div class="tbl-scroll"><table id="t3-top-offenders"></table></div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 4 — Cubo No Pickup
+════════════════════════════════════════════════════════════ -->
+<div id="pane-3" class="tab-pane">
+<main class="content">
+
+  <div class="status-bar">
+    2026-04-08 · No Pickup nacional: 188.276 envios (7,45%) · fonte: BQ validado vs Sheets LATAM 2.0
+  </div>
+
+  <div class="section-label">Seção 1 — Cards de Impacto</div>
+  <!-- Preenchido dinamicamente por initAba4() a partir de BY_FACILITY e BY_CARRIER -->
+  <div id="aba4-impact-row1" class="impact-grid" style="margin-bottom:12px"></div>
+  <div id="aba4-impact-row2" class="impact-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px"></div>
+
+  <div class="section-label">Seção 2 — Volume vs No Pickup Top 12 Facilities</div>
+
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Coletados vs No Pickup — Top 12 Facilities (excl. SEM_FACILITY)</div>
+    <div class="chart-sub">Barras empilhadas: verde = coletados · vermelho = no pickup</div>
+    <div class="chart-wrap-320"><canvas id="c4-stack"></canvas></div>
+  </div>
+
+  <div class="section-label">Tabela Pivot — Facilities (ordem: No Pickup abs desc)</div>
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Facilities — Métricas Completas</h3>
+      <p>Coloração NP%: vermelho &gt;5% · âmbar 1–5% · verde &lt;1% · SEM_FACILITY inclusa (destacada)</p>
+    </div>
+    <div class="tbl-scroll"><table id="t4-fac"></table></div>
+  </div>
+
+  <div class="section-label">Tabela Pivot — Transportadoras (ordem: No Pickup abs desc)</div>
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Carriers — Métricas Completas</h3>
+      <p>Coloração NP%: vermelho &gt;5% · âmbar 1–5% · verde &lt;1% · SEM_CARRIER inclusa (destacada)</p>
+    </div>
+    <div class="tbl-scroll"><table id="t4-car"></table></div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 5 — Aderência Perfil de Veículo
+════════════════════════════════════════════════════════════ -->
+<div id="pane-4" class="tab-pane">
+<main class="content">
+
+  <div class="status-bar">
+    2026-04-09 · Rotas não canceladas · Veículo Planejado vs Executado ·
+    Fonte: BT_SHP_LOGISTIC_FM_ROUTE + DM_SHP_ROUTES_FIRST_MILE · MLB
+  </div>
+
+  <div class="note-bar">
+    <span style="font-size:14px">&#9432;</span>
+    <span>
+      <strong>O que é Aderência ao Perfil:</strong> Compara o tipo de veículo <em>planejado</em> pela operação com o tipo <em>executado</em> pela MLP.
+      <strong>Match</strong> = veículo igual ao planejado (AGG class) ·
+      <strong>Upgrade</strong> = veículo maior (M³ exec &gt; M³ plan) ·
+      <strong>Downgrade</strong> = veículo menor (M³ exec &lt; M³ plan).
+    </span>
+  </div>
+
+  <!-- CARDS NACIONAIS -->
+  <div class="section-label">Nacional D-1 — 2026-04-09</div>
+  <!-- Cards nacionais Match/Upgrade/Downgrade -->
+  <div class="adh-grid">
+    <div class="adh-card above">
+      <div class="adh-kpi-name">MATCH — Veículo Igual</div>
+      <div class="adh-chart-wrap">
+        <canvas id="c5-match"></canvas>
+        <div class="gauge-label">
+          <div id="g5-match-pct" class="gauge-pct" style="color:var(--green)">76,85%</div>
+          <div id="g5-match-sub" class="gauge-sub">27.129 / 35.301</div>
+        </div>
+      </div>
+      <div id="g5-match-real" class="adh-real" style="color:var(--green)">76,85%</div>
+      <div class="adh-meta">Rotas executadas com veículo igual ao planejado</div>
+      <div id="g5-match-delta" class="adh-delta pos">27.129 rotas match</div>
+    </div>
+    <div class="adh-card" style="border-top:3px solid var(--ml-blue)">
+      <div class="adh-kpi-name">UPGRADE — Veículo Maior</div>
+      <div class="adh-chart-wrap">
+        <canvas id="c5-upgrade"></canvas>
+        <div class="gauge-label">
+          <div id="g5-upg-pct" class="gauge-pct" style="color:var(--ml-blue)">3,07%</div>
+          <div id="g5-upg-sub" class="gauge-sub">1.085 / 35.301</div>
+        </div>
+      </div>
+      <div id="g5-upg-real" class="adh-real" style="color:var(--ml-blue)">3,07%</div>
+      <div class="adh-meta">M³ executado &gt; M³ planejado</div>
+      <div id="g5-upg-delta" class="adh-delta" style="background:var(--blue-lt);color:var(--blue)">1.085 rotas upgrade</div>
+    </div>
+    <div class="adh-card below">
+      <div class="adh-kpi-name">DOWNGRADE — Veículo Menor</div>
+      <div class="adh-chart-wrap">
+        <canvas id="c5-downgrade"></canvas>
+        <div class="gauge-label">
+          <div id="g5-dwn-pct" class="gauge-pct" style="color:var(--red)">3,37%</div>
+          <div id="g5-dwn-sub" class="gauge-sub">1.189 / 35.301</div>
+        </div>
+      </div>
+      <div id="g5-dwn-real" class="adh-real" style="color:var(--red)">3,37%</div>
+      <div class="adh-meta">M³ executado &lt; M³ planejado — impacto negativo</div>
+      <div id="g5-dwn-delta" class="adh-delta neg">1.189 rotas downgrade</div>
+    </div>
+  </div>
+
+  <!-- Evolução por regional + chart -->
+  <div class="section-label">Aderência por Regional — D-1</div>
+  <div class="charts-grid" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-title">Match % por Regional</div>
+      <div class="chart-sub">Ordenado por Total de Rotas desc</div>
+      <div class="chart-wrap-260"><canvas id="c5-reg-match"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Downgrade % por Regional — Impacto</div>
+      <div class="chart-sub">Maior barra = mais rotas com veículo menor que planejado</div>
+      <div class="chart-wrap-260"><canvas id="c5-reg-dwn"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tabela por hub -->
+  <div class="section-label">Aderência por Hub — Ranking Impacto Downgrade</div>
+  <div class="table-card" style="margin-bottom:20px">
+    <div class="table-header">
+      <h3>Por Hub — Match / Upgrade / Downgrade</h3>
+      <p>Ordenado por Impacto Downgrade desc · D-1 · Fonte: BT_SHP_LOGISTIC_FM_ROUTE + DM_SHP_ROUTES_FIRST_MILE</p>
+    </div>
+    <div class="tbl-scroll"><table id="t5-hub"></table></div>
+  </div>
+
+  <!-- Nota sobre discrepância M3 -->
+  <div class="note-bar" style="background:#FEF3C7;border-color:#FDE68A">
+    <span style="font-size:14px">&#9888;</span>
+    <span>
+      <strong>Discrepância de M³ dentro da mesma classe (AGG):</strong>
+      VUC tem subtipos com 16m³ e 17m³ · VAN tem subtipos com 8m³, 13m³ e 14m³ · UTILITÁRIO: 3,0m³ e 3,3m³.
+      Match/Upgrade/Downgrade são calculados por <strong>classe AGG</strong> (não por M³ absoluto) para evitar falsos positivos dentro da mesma classe.
+    </span>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABA 6 — Glossário
+════════════════════════════════════════════════════════════ -->
+<div id="pane-5" class="tab-pane">
+<main class="content">
+
+  <div class="section-label">Glossário e Documentação Técnica</div>
+
+  <!-- 1. Indicadores -->
+  <div class="acc-item open" id="g-acc1">
+    <div class="acc-header" onclick="toggle6('g-acc1')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:var(--blue-lt);color:var(--blue)">KPI</div>
+        <div>
+          <div class="acc-title">1. Indicadores Principais</div>
+          <div class="acc-subtitle">Definições e fórmulas dos KPIs monitorados</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body">
+      <div class="term-grid">
+        <div class="term-card">
+          <div class="term-name">PUS XD <span class="term-tag tag-blue">Pickup Success Rate</span></div>
+          <div class="term-def">Percentual de envios coletados pelo transportador em relação ao denominador (universo de envios que deveriam ser coletados no dia).</div>
+          <div class="term-formula">PUS XD % = COLETADOS / DENOMINADOR × 100</div>
+          <div class="term-note">Meta Q2 2026: 92,6% · Semáforo: verde &gt;= 92,6%, vermelho &lt; 92,6%</div>
+        </div>
+        <div class="term-card">
+          <div class="term-name">PUS On Time XD <span class="term-tag tag-green">Pickup On Time</span></div>
+          <div class="term-def">Percentual de envios coletados dentro da janela de horário acordada com o transportador, em relação ao denominador.</div>
+          <div class="term-formula">PUS OT % = PUS_ON_TIME / DENOMINADOR × 100</div>
+          <div class="term-note">Meta Q2 2026: 82,1% · Mede a pontualidade, não apenas a coleta</div>
+        </div>
+        <div class="term-card">
+          <div class="term-name">No Pickup <span class="term-tag tag-red">Envio Nao Coletado</span></div>
+          <div class="term-def">Percentual de envios que deveriam ter sido coletados no dia, mas não foram. Quanto menor, melhor — meta de manter abaixo de 9%.</div>
+          <div class="term-formula">No Pickup % = NO_PICKUP / DENOMINADOR × 100<br>= 100% - PUS XD %</div>
+          <div class="term-note">Meta: &lt; 9% · SEM_FACILITY/SEM_CARRIER distorce o resultado nacional</div>
+        </div>
+        <div class="term-card">
+          <div class="term-name">Denominador <span class="term-tag tag-gray">Universo de Envios</span></div>
+          <div class="term-def">Total de envios elegíveis para coleta no dia D. Inclui PUS_A (agendados para D) e PUS_D (backlog vencido com EDPU &lt; D), desde que com classificação de resultado disponível.</div>
+          <div class="term-formula">DENOMINADOR = PUS_A + PUS_D<br>(com PICKUP_SUCCESS_CLASIFICATION IS NOT NULL)</div>
+          <div class="term-note">D-1 2026-04-08: 2.358.245 envios</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Denominador -->
+  <div class="acc-item open" id="g-acc2">
+    <div class="acc-header" onclick="toggle6('g-acc2')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:var(--amber-lt);color:var(--amber)">DEF</div>
+        <div>
+          <div class="acc-title">2. Definição do Denominador</div>
+          <div class="acc-subtitle">Composição do universo de envios tratados</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body">
+      <div class="term-grid">
+        <div class="term-card">
+          <div class="term-name">PUS_A <span class="term-tag tag-blue">Agendado Dia D</span></div>
+          <div class="term-def">Envio com EDPU date (Estimated Date of Pickup) igual ao dia D. O transportador estava programado para coletar neste dia específico.</div>
+          <div class="term-note">EDPU = Expected Date of Pickup do envio</div>
+        </div>
+        <div class="term-card">
+          <div class="term-name">PUS_D <span class="term-tag tag-amber">Backlog Vencido</span></div>
+          <div class="term-def">Envio com EDPU date anterior ao dia D que ainda não foi coletado. Representa backlog acumulado de dias anteriores que deveria ter sido tratado.</div>
+          <div class="term-note">EDPU &lt; D · ainda sem coleta registrada</div>
+        </div>
+        <div class="term-card full">
+          <div class="term-name">Condição de Inclusão no Denominador</div>
+          <div class="term-def">Um envio só entra no denominador se satisfaz TODAS as condições:</div>
+          <div class="term-formula">(PUS_A = 1 OR PUS_D = 1)<br>AND PICKUP_SUCCESS_CLASIFICATION IS NOT NULL<br>AND SHP_SITE_ID = 'MLB'<br>AND SHP_PICKING_TYPE IN ('XD_DROP_OFF', 'CROSS_DOCKING')</div>
+          <div class="term-note">PICKUP_SUCCESS_CLASIFICATION = campo de classificação do resultado da coleta — NULL indica envio ainda em processo de classificação</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Filtros -->
+  <div class="acc-item open" id="g-acc3">
+    <div class="acc-header" onclick="toggle6('g-acc3')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:var(--green-lt);color:var(--green)">FLT</div>
+        <div>
+          <div class="acc-title">3. Filtros Aplicados</div>
+          <div class="acc-subtitle">Escopo da query de extração</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body" style="padding-top:12px">
+      <div class="info-row">
+        <div class="info-key">País / Site</div>
+        <div class="info-val"><code>SHP_SITE_ID = 'MLB'</code> — Brasil completo (escopo nacional, nunca ARENA-only)</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Tipo de Picking</div>
+        <div class="info-val"><code>SHP_PICKING_TYPE IN ('XD_DROP_OFF', 'CROSS_DOCKING')</code></div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Período</div>
+        <div class="info-val">D-1 (dia anterior fechado) · Timezone GMT-4 (Mercado Livre standard)</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Classificação</div>
+        <div class="info-val"><code>PICKUP_SUCCESS_CLASIFICATION IS NOT NULL</code> — garante que apenas envios com resultado classificado entrem no cálculo</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">SEM_FACILITY / SEM_CARRIER</div>
+        <div class="info-val">Inclusos no total nacional mas excluídos das análises por hub/transportadora quando especificado. Representam envios sem mapeamento no GSHEET_NOMINAL_MLB.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Fontes -->
+  <div class="acc-item open" id="g-acc4">
+    <div class="acc-header" onclick="toggle6('g-acc4')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:#F3E8FF;color:#7C3AED">SRC</div>
+        <div>
+          <div class="acc-title">4. Fontes de Dados e Infraestrutura</div>
+          <div class="acc-subtitle">Tabelas, jobs e pipeline de atualização</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body" style="padding-top:12px">
+      <div class="info-row">
+        <div class="info-key">Tabela Source Principal</div>
+        <div class="info-val"><code>meli-bi-data.WHOWNER.DM_SHP_XD_PICKUP</code> — tabela de eventos de pickup do sistema de Cross Docking / XD</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Job DataFlow</div>
+        <div class="info-val"><code>420650</code> — CCO_FM_MAIN_KPIS_GENERATOR (ambiente DESA) · SA: LASTMILE_ANALYTICS (ID 147102) · Role: 3104</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Output GCS</div>
+        <div class="info-val"><code>gs://meli-bi-data-tmp/main-kpis-fm/latest.json</code> — arquivo JSON com dados nacionais + por facility + por carrier</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Frequência de Atualização</div>
+        <div class="info-val">A cada 30 minutos · Referência: D-1 (dia fechado) · Primeiro run disponível ~04h BRT após fechamento do dia</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">BQ Project Billing</div>
+        <div class="info-val"><code>ddme000162-8l63cxvebh8-furyid</code> — projeto de cobrança padrão CCO Analytics</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Deploy Painel</div>
+        <div class="info-val">GitHub Actions → Fury · Repositório: <code>dbalduino_meli/cco-fm-workspace</code> · Branch: main</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. SEM_FACILITY -->
+  <div class="acc-item open" id="g-acc5">
+    <div class="acc-header" onclick="toggle6('g-acc5')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:#FEF3C7;color:#92400E">SEM</div>
+        <div>
+          <div class="acc-title">5. Notas sobre SEM_FACILITY e SEM_CARRIER</div>
+          <div class="acc-subtitle">Impacto dos envios sem hub mapeado — 2026-04-08</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body" style="padding-top:12px">
+      <div class="info-row">
+        <div class="info-key">O que é SEM_FACILITY</div>
+        <div class="info-val">Envios cujo hub de origem não está mapeado na tabela nominal <code>GSHEET_NOMINAL_MLB</code>. O campo de facility retorna nulo ou valor desconhecido.</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">O que é SEM_CARRIER</div>
+        <div class="info-val">Envios cujo transportador não está mapeado. Geralmente coincide com SEM_FACILITY — são os mesmos 225.890 envios (estimados pela fórmula oficial).</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Volume D-1 (2026-04-08)</div>
+        <div class="info-val"><strong>225.890 envios</strong> — 8,9% do total nacional (denominador: 2.527.953)</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">PUS% do grupo SEM</div>
+        <div class="info-val"><strong style="color:#DC2626">26,92%</strong> — artificialmente baixo porque esses envios possuem No Pickup alto (165.071 NPs = 73,08%)</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Impacto no KPI Nacional</div>
+        <div class="info-val">O PUS nacional de 92,55% já inclui o peso do SEM. Sem ele, o PUS das facilities mapeadas seria ~99,9%+. O NP% nacional de 7,45% é fortemente influenciado por este grupo.</div>
+      </div>
+      <div class="sem-alert">
+        <strong>Acao Necessaria:</strong>
+        <p>Mapear os hubs faltantes na tabela nominal <code>GSHEET_NOMINAL_MLB</code>. Cada hub não mapeado soma ao grupo SEM e distorce o PUS nacional. Prioridade: identificar os CVPs/agências de origem dos 226k envios e registrar no Google Sheets de referência.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Código de Cores -->
+  <div class="acc-item" id="g-acc6">
+    <div class="acc-header" onclick="toggle6('g-acc6')">
+      <div class="acc-header-left">
+        <div class="acc-icon" style="background:var(--bg);color:var(--text);border:1px solid var(--border)">COR</div>
+        <div>
+          <div class="acc-title">6. Código de Cores — Semáforo</div>
+          <div class="acc-subtitle">Critérios de coloração usados nas tabelas e gráficos</div>
+        </div>
+      </div>
+      <div class="acc-arrow">&#9660;</div>
+    </div>
+    <div class="acc-body">
+      <p style="font-size:10.5px;color:var(--mid);margin-bottom:8px">Baseado em <strong>Targets Q2 2026 — Proposta Matemática</strong> · Fonte: Google Sheets "Targets PUS 2026 - First Mile"</p>
+      <table class="color-table">
+        <thead><tr><th>Indicador</th><th>Meta Q2 2026</th><th>Verde (acima)</th><th>Vermelho (abaixo)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>% Pickup Success XD</td>
+            <td><strong>92,6%</strong></td>
+            <td><span class="dot" style="background:#00A650"></span>&gt;= 92,6%</td>
+            <td><span class="dot" style="background:#F23D4F"></span>&lt; 92,6%</td>
+          </tr>
+          <tr>
+            <td>% PU On Time XD</td>
+            <td><strong>82,1%</strong></td>
+            <td><span class="dot" style="background:#00A650"></span>&gt;= 82,1%</td>
+            <td><span class="dot" style="background:#F23D4F"></span>&lt; 82,1%</td>
+          </tr>
+          <tr>
+            <td>% Pontualidade</td>
+            <td><strong>~88,7%</strong> <em style="color:var(--ml-gray-3);font-size:9px">(derivado: OT÷PUS)</em></td>
+            <td><span class="dot" style="background:#00A650"></span>&gt;= 88,7%</td>
+            <td><span class="dot" style="background:#F23D4F"></span>&lt; 88,7%</td>
+          </tr>
+          <tr>
+            <td>% No Pickup</td>
+            <td><strong>7,4%</strong> <em style="color:var(--ml-gray-3);font-size:9px">(menor = melhor)</em></td>
+            <td><span class="dot" style="background:#00A650"></span>&lt;= 7,4%</td>
+            <td><span class="dot" style="background:#F23D4F"></span>&gt; 7,4%</td>
+          </tr>
+          <tr>
+            <td>Challenge Q2 (referência)</td>
+            <td>PUS 92,3% · OT 83,1% · NP 7,7%</td>
+            <td colspan="2" style="color:var(--ml-gray-3);font-size:10px">Usado para comparação estratégica — não altera semáforo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DADOS COMPARTILHADOS
+// ══════════════════════════════════════════════════════════════
+// Dados validados vs Google Sheets LATAM 2.0 — 04/08/2026
+// Todos os deltas < 0.11pp (dentro do lag de settlement do D-1)
+// BQ Sheets delta: Estimados +332 | PUS +0.05pp | OT +0.01pp
+const NATIONAL = {
+  DATA_MAX:"2026-04-08",
+  // TOTAIS (PS TOTAL — Sheets: 92.5%)
+  ESTIMADOS_TOTAIS: 2527953,    // Sheets: 2,527,621
+  COLETADOS_PU:     2339677,    // Coletados com PICKUP_SUCCESS_CLASIFICATION ∈ 5 tipos
+  COLETADOS_TOTAL:  2347698,    // IS_COLLECTED=TRUE (inclui sem clasif)
+  PU_ON_TIME:       2088263,
+  PU_LATE:          190703,
+  PU_OFFLINE:       60711,
+  NO_PICKUP:        188276,
+  NO_PU_ME:         74484,
+  NO_PU_SELLER:     100747,
+  NO_PU_PLACE:      13472,
+  PCT_PICKUP_SUCCESS: 92.55,    // Sheets: 92.5%
+  PCT_PU_ON_TIME:     82.61,    // Sheets: 82.6%
+  PCT_PONTUALIDADE:   89.3,     // legado D-1; Aba2 usa série/caixa próprias do Tableau
+  PCT_NP:             7.45,
+  PCT_PU_LATE:        7.54,
+  PCT_PU_OFFLINE:     2.40,     // Sheets: 2.4%
+  PCT_CULP_MELI:      2.9,      // Sheets: ~3.0%
+  PCT_CULP_SELLER:    4.0,      // Sheets: 4.0%
+  PCT_CULP_PLACE:     0.5,      // Sheets: 0.5%
+  // POR TIPO (CD = CROSS_DOCKING | DO = XD_DROP_OFF)
+  EST_XD:    1238457, COLET_XD: 1158030, OT_XD:  1017802,
+  EST_DO:    1289496, COLET_DO: 1181647, OT_DO:  1070461,
+  PCT_PUS_XD:  93.51, PCT_OT_XD:  82.18,  // Sheets: 93.4% | 82.1%
+  PCT_PUS_DO:  91.64, PCT_OT_DO:  83.01,  // Sheets: 91.7% | 83.1%
+  // POR VELOCIDADE
+  EST_FAST:  1601872, COLET_FAST: 1481632, PCT_PUS_FAST: 92.49, // Sheets: 92.5%
+  EST_SLOW:   926081, COLET_SLOW:  858045, PCT_PUS_SLOW: 92.65, // Sheets: 92.6%
+  // Aliases para compatibilidade com charts existentes
+  DENOMINADOR:        2527953,
+  COLETADOS:          2339677,
+  PICKUP_SUCCESS_PCT: 92.55,
+  NO_PICKUP_PCT:      7.45,
+  PUS_ON_TIME_PCT:    82.61
+};
+
+// Targets FM XD 2026 — fonte: Google Sheets "Targets PUS 2026 - First Mile" (Q2 2026)
+// Acesso: gid=664916693 | Proposta Matemática Q2 | Challenge Q2
+const TARGETS = {
+  PUS_XD:       { proposta: 92.6, challenge: 92.3 },  // Pickup Success XD
+  OT_XD:        { proposta: 82.1, challenge: 83.1 },  // Pickup Success On Time XD
+  NO_PICKUP:    { proposta: 7.4,  challenge: 7.7  },  // No Pickup (menor = melhor)
+};
+// Target usado para semáforo: usamos a proposta matemática como baseline
+const TARGET_PUS  = TARGETS.PUS_XD.proposta;      // 92.6%
+const TARGET_OT   = TARGETS.OT_XD.proposta;       // 82.1%
+const TARGET_NP   = TARGETS.NO_PICKUP.proposta;   // 7.4%
+// Pontualidade target derivado: OT_proposta / PUS_proposta (sem target explícito no Sheets)
+const TARGET_PONT = parseFloat((TARGET_OT / TARGET_PUS * 100).toFixed(1)); // ~88.7%
+
+// ── Sistema semântico de cores (ref: Ahrefs + Paylocity) ──────
+// 3 níveis: bom (verde escuro) · atenção (âmbar) · crítico (vermelho)
+// PUS/OT: >meta+0.5pp = bom | dentro ±0.5pp = atenção | <meta-0.5pp = crítico
+// NP: <meta-0.3pp = bom | dentro ±0.3pp = atenção | >meta+0.3pp = crítico
+const C_GOOD = '#16A34A';   // verde escuro
+const C_WARN = '#D97706';   // âmbar
+const C_BAD  = '#DC2626';   // vermelho
+const C_BLUE = '#0EA5E9';   // azul volume
+const C_TEAL = '#0D9488';   // teal OT
+
+function pusColor(pct) {
+  const d = pct - TARGET_PUS;
+  return d >= 0.5 ? C_GOOD : d >= -0.5 ? C_WARN : C_BAD;
+}
+function otColor(pct) {
+  const d = pct - TARGET_OT;
+  return d >= 0.5 ? C_GOOD : d >= -0.5 ? C_WARN : C_BAD;
+}
+function npColor(pct) {
+  const d = TARGET_NP - pct; // invertido: menor NP = melhor
+  return d >= 0.3 ? C_GOOD : d >= -0.3 ? C_WARN : C_BAD;
+}
+function pontColor(pct) {
+  const d = pct - TARGET_PONT;
+  return d >= 0.5 ? C_GOOD : d >= -0.5 ? C_WARN : C_BAD;
+}
+
+// Dados validados — DIM_FM_FACILITY_NOMINAL + COALESCE facility fields — 04/08/2026
+// NPs agora distribuidos corretamente entre hubs (antes ficavam em SEM_FACILITY)
+// GRU II=92.3% | ARE=92.5% | CWB=91.0% | PPY=89.7% (antes ~99% — errado)
+const BY_FACILITY = [
+  {FACILITY_NAME:"GRU II",  SIGLA:"BRXSP10", REGIONAL:"SPC + MEGAS",EST:474083,COL:437779,NP:36304,OT_ABS:388064,PUS_PCT:92.34,NP_PCT:7.66,OT_PCT:81.86},
+  {FACILITY_NAME:"ARE",     SIGLA:"ARENA",   REGIONAL:"SPC + MEGAS",EST:441639,COL:408757,NP:32882,OT_ABS:330299,PUS_PCT:92.55,NP_PCT:7.45,OT_PCT:74.79},
+  {FACILITY_NAME:"CPS",     SIGLA:"CAMPINAS",REGIONAL:"SPIO",       EST:223027,COL:207619,NP:15408,OT_ABS:196868,PUS_PCT:93.09,NP_PCT:6.91,OT_PCT:88.27},
+  {FACILITY_NAME:"ZN",      SIGLA:"BRXSP16", REGIONAL:"SP2",        EST:182692,COL:169218,NP:13474,OT_ABS:154191,PUS_PCT:92.62,NP_PCT:7.38,OT_PCT:84.40},
+  {FACILITY_NAME:"RAO",     SIGLA:"BRXSP5",  REGIONAL:"SPIO",       EST:172422,COL:161095,NP:11327,OT_ABS:153012,PUS_PCT:93.43,NP_PCT:6.57,OT_PCT:88.74},
+  {FACILITY_NAME:"RJ",      SIGLA:"BRRJ02",  REGIONAL:"RJ/ES",      EST:145997,COL:136518,NP:9479, OT_ABS:118111,PUS_PCT:93.51,NP_PCT:6.49,OT_PCT:80.90},
+  {FACILITY_NAME:"MG",      SIGLA:"XMG1",    REGIONAL:"MG",         EST:130416,COL:120354,NP:10062,OT_ABS:110320,PUS_PCT:92.28,NP_PCT:7.72,OT_PCT:84.59},
+  {FACILITY_NAME:"SBC",     SIGLA:"XSP4",    REGIONAL:"SPC + MEGAS",EST:119841,COL:110001,NP:9840, OT_ABS:98601, PUS_PCT:91.79,NP_PCT:8.21,OT_PCT:82.28},
+  {FACILITY_NAME:"SC",      SIGLA:"BRXSC2",  REGIONAL:"SUL",        EST:109748,COL:102066,NP:7682, OT_ABS:89797, PUS_PCT:93.00,NP_PCT:7.00,OT_PCT:81.82},
+  {FACILITY_NAME:"CWB",     SIGLA:"BRPR01",  REGIONAL:"SUL",        EST:107126,COL:97481, NP:9645, OT_ABS:84655, PUS_PCT:91.00,NP_PCT:9.00,OT_PCT:79.02},
+  {FACILITY_NAME:"MAR",     SIGLA:"BRXSP14", REGIONAL:"SPIO",       EST:83079, COL:76370, NP:6709, OT_ABS:71361, PUS_PCT:91.92,NP_PCT:8.08,OT_PCT:85.90},
+  {FACILITY_NAME:"MARINGA", SIGLA:"BRXPR4",  REGIONAL:"SPIO",       EST:53901, COL:50861, NP:3040, OT_ABS:46989, PUS_PCT:94.36,NP_PCT:5.64,OT_PCT:87.18},
+  {FACILITY_NAME:"RS",      SIGLA:"BRXRS1",  REGIONAL:"SUL",        EST:50406, COL:45708, NP:4698, OT_ABS:40715, PUS_PCT:90.68,NP_PCT:9.32,OT_PCT:80.77},
+  {FACILITY_NAME:"GO",      SIGLA:"BRXGO1",  REGIONAL:"NONECO",     EST:47895, COL:45278, NP:2617, OT_ABS:42470, PUS_PCT:94.54,NP_PCT:5.46,OT_PCT:88.67},
+  {FACILITY_NAME:"ES",      SIGLA:"BRXES1",  REGIONAL:"RJ/ES",      EST:43916, COL:41699, NP:2217, OT_ABS:38449, PUS_PCT:94.95,NP_PCT:5.05,OT_PCT:87.55},
+  {FACILITY_NAME:"BAU",     SIGLA:"BRXSP7",  REGIONAL:"SPIO",       EST:43118, COL:40493, NP:2625, OT_ABS:38080, PUS_PCT:93.91,NP_PCT:6.09,OT_PCT:88.32},
+  {FACILITY_NAME:"CAC",     SIGLA:"BRXPR3",  REGIONAL:"SUL",        EST:18508, COL:17113, NP:1395, OT_ABS:16505, PUS_PCT:92.46,NP_PCT:7.54,OT_PCT:89.18},
+  {FACILITY_NAME:"PRU",     SIGLA:"BRXSP11", REGIONAL:"SPIO",       EST:18472, COL:17313, NP:1159, OT_ABS:16773, PUS_PCT:93.73,NP_PCT:6.27,OT_PCT:90.80},
+  {FACILITY_NAME:"LON",     SIGLA:"BRXPR2",  REGIONAL:"SPIO",       EST:16032, COL:15202, NP:830,  OT_ABS:14968, PUS_PCT:94.82,NP_PCT:5.18,OT_PCT:93.36},
+  {FACILITY_NAME:"PPY",     SIGLA:"BRXMG3",  REGIONAL:"MG",         EST:14211, COL:12749, NP:1462, OT_ABS:11744, PUS_PCT:89.71,NP_PCT:10.29,OT_PCT:82.64},
+  {FACILITY_NAME:"BA",      SIGLA:"BRXBA1",  REGIONAL:"NONECO",     EST:11239, COL:10488, NP:751,  OT_ABS:9990,  PUS_PCT:93.32,NP_PCT:6.68,OT_PCT:88.89},
+  {FACILITY_NAME:"UDI",     SIGLA:"BRXMG2",  REGIONAL:"MG",         EST:8250,  COL:7890,  NP:360,  OT_ABS:7361,  PUS_PCT:95.64,NP_PCT:4.36,OT_PCT:89.22},
+  {FACILITY_NAME:"PE",      SIGLA:"BRXPE1",  REGIONAL:"NONECO",     EST:7828,  COL:6974,  NP:854,  OT_ABS:5500,  PUS_PCT:89.09,NP_PCT:10.91,OT_PCT:70.26},
+  {FACILITY_NAME:"FOR",     SIGLA:"BRXCE1",  REGIONAL:"NONECO",     EST:4849,  COL:4354,  NP:495,  OT_ABS:3976,  PUS_PCT:89.79,NP_PCT:10.21,OT_PCT:82.00}
+].map(d=>({
+  ...d,
+  FACILITY: d.FACILITY_NAME,
+  DENOMINADOR:d.EST, COLETADOS:d.COL, NO_PICKUP:d.NP,
+  PICKUP_SUCCESS_PCT:d.PUS_PCT, NO_PICKUP_PCT:d.NP_PCT, PUS_ON_TIME_PCT:d.OT_PCT
+}));
+
+// BY_CARRIER — validado via Routes UNNEST + DIM_FM_CARRIER_NOMINAL — 2026-04-10
+// Formula: COALESCE(R.MLP, DM.MLP_PU) com UNNEST(Routes) JOIN por SHP_LG_ORDER_ID
+// PUS% corretos (88-98%) — antes mostrava ~99% pois NPs ficavam em SEM_CARRIER
+const BY_CARRIER = [
+  {CARRIER:"Kangu Logistics",EST:1250676,COL:1175046,NP:75630,OT_ABS:1065071,PUS_PCT:93.95,NP_PCT:6.05,OT_PCT:85.16},
+  {CARRIER:"JM Transportes",EST:265863,COL:250651,NP:15212,OT_ABS:229718,PUS_PCT:94.28,NP_PCT:5.72,OT_PCT:86.4},
+  {CARRIER:"DHL",EST:155003,COL:147386,NP:7617,OT_ABS:139491,PUS_PCT:95.09,NP_PCT:4.91,OT_PCT:89.99},
+  {CARRIER:"Grupo Imediato",EST:124500,COL:118648,NP:5852,OT_ABS:112227,PUS_PCT:95.3,NP_PCT:4.7,OT_PCT:90.14},
+  {CARRIER:"SEM_CARRIER",EST:79740,COL:56343,NP:23397,OT_ABS:0,PUS_PCT:70.66,NP_PCT:29.34,OT_PCT:0.0},
+  {CARRIER:"CEVA",EST:72702,COL:66969,NP:5733,OT_ABS:63084,PUS_PCT:92.11,NP_PCT:7.89,OT_PCT:86.77},
+  {CARRIER:"Hawk Transportes",EST:60886,COL:57640,NP:3246,OT_ABS:53436,PUS_PCT:94.67,NP_PCT:5.33,OT_PCT:87.76},
+  {CARRIER:"Pra Log",EST:50329,COL:47945,NP:2384,OT_ABS:46745,PUS_PCT:95.26,NP_PCT:4.74,OT_PCT:92.88},
+  {CARRIER:"Stopassolli",EST:45038,COL:42012,NP:3026,OT_ABS:39076,PUS_PCT:93.28,NP_PCT:6.72,OT_PCT:86.76},
+  {CARRIER:"On Time Servicos",EST:43264,COL:40247,NP:3017,OT_ABS:35951,PUS_PCT:93.03,NP_PCT:6.97,OT_PCT:83.1},
+  {CARRIER:"Sequoia LM",EST:38359,COL:34713,NP:3646,OT_ABS:29272,PUS_PCT:90.5,NP_PCT:9.5,OT_PCT:76.31},
+  {CARRIER:"Murici",EST:22472,COL:20493,NP:1979,OT_ABS:18341,PUS_PCT:91.19,NP_PCT:8.81,OT_PCT:81.62},
+  {CARRIER:"Basepex Encom",EST:20111,COL:18876,NP:1235,OT_ABS:15512,PUS_PCT:93.86,NP_PCT:6.14,OT_PCT:77.13},
+  {CARRIER:"BLD Logistica",EST:18433,COL:16468,NP:1965,OT_ABS:15156,PUS_PCT:89.34,NP_PCT:10.66,OT_PCT:82.22},
+  {CARRIER:"RodaCoop",EST:13605,COL:12533,NP:1072,OT_ABS:12032,PUS_PCT:92.12,NP_PCT:7.88,OT_PCT:88.44},
+  {CARRIER:"Torres Transp",EST:12667,COL:11949,NP:718,OT_ABS:9465,PUS_PCT:94.33,NP_PCT:5.67,OT_PCT:74.72},
+  {CARRIER:"Eco Express",EST:11043,COL:9843,NP:1200,OT_ABS:9604,PUS_PCT:89.13,NP_PCT:10.87,OT_PCT:86.97},
+  {CARRIER:"Pantera Log",EST:10864,COL:10039,NP:825,OT_ABS:7551,PUS_PCT:92.41,NP_PCT:7.59,OT_PCT:69.5},
+  {CARRIER:"Parceiro Spot",EST:10757,COL:9599,NP:1158,OT_ABS:9537,PUS_PCT:89.23,NP_PCT:10.77,OT_PCT:88.66},
+  {CARRIER:"AC2 Logistica",EST:10527,COL:9763,NP:764,OT_ABS:8783,PUS_PCT:92.74,NP_PCT:7.26,OT_PCT:83.43},
+  {CARRIER:"Flypack",EST:10095,COL:8966,NP:1129,OT_ABS:8330,PUS_PCT:88.82,NP_PCT:11.18,OT_PCT:82.52},
+  {CARRIER:"Transmana",EST:8737,COL:8459,NP:278,OT_ABS:7703,PUS_PCT:96.82,NP_PCT:3.18,OT_PCT:88.17},
+  {CARRIER:"ALC Transportes",EST:7035,COL:6837,NP:198,OT_ABS:6615,PUS_PCT:97.19,NP_PCT:2.81,OT_PCT:94.03},
+  {CARRIER:"MSR",EST:5634,COL:5384,NP:250,OT_ABS:5202,PUS_PCT:95.56,NP_PCT:4.44,OT_PCT:92.33},
+  {CARRIER:"KN Logistica",EST:3738,COL:2909,NP:829,OT_ABS:2449,PUS_PCT:77.82,NP_PCT:22.18,OT_PCT:65.52},
+  {CARRIER:"Altovale",EST:1702,COL:1679,NP:23,OT_ABS:1515,PUS_PCT:98.65,NP_PCT:1.35,OT_PCT:89.01},
+  {CARRIER:"Atitude",EST:225,COL:222,NP:3,OT_ABS:222,PUS_PCT:98.67,NP_PCT:1.33,OT_PCT:98.67},
+  {CARRIER:"Protege Cargo",EST:157,COL:149,NP:8,OT_ABS:149,PUS_PCT:94.9,NP_PCT:5.1,OT_PCT:94.9}
+].map(d=>({...d,DENOMINADOR:d.EST,COLETADOS:d.COL,NO_PICKUP:d.NP,PICKUP_SUCCESS_PCT:d.PUS_PCT,NO_PICKUP_PCT:d.NP_PCT,PUS_ON_TIME_PCT:d.OT_PCT}));
+
+// ── HELPERS ──
+function fmtN(v){return v.toLocaleString('pt-BR')}
+function fmtP(v){return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
+// pusPill: usa target Q2 2026 para semáforo — verde acima, vermelho abaixo
+function pusPill(p){const ok=p>=TARGET_PUS;return `<span class="pill ${ok?'pill-green':'pill-red'}">${fmtP(p)}</span>`}
+function npPill(p){const ok=p<=TARGET_NP;return `<span class="pill ${ok?'pill-green':'pill-red'}">${fmtP(p)}</span>`}
+
+// ══════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════════════════════════
+const initialized = {};
+
+function showTab(idx) {
+  document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  if (!initialized[idx]) {
+    initialized[idx] = true;
+    if (initTab[idx]) initTab[idx]();
+  }
+  window.scrollTo(0,0);
+}
+
+const initTab = {
+  0: initAba1,
+  1: initAba2,
+  2: initAba3,
+  3: initAba4,
+  4: initAba5
+  // 5: glossário não tem charts
+};
+
+// ══════════════════════════════════════════════════════════════
+// ABA 1 — Volume & Quality
+// ══════════════════════════════════════════════════════════════
+function initAba1() {
+  // ── FIX-6: KPI tiles dinâmicos — Row 1 (%) + Row 2 (volumes) ──
+  {
+    const pp = v => (v >= 0 ? '+' : '\u2212') + Math.abs(v).toFixed(2) + 'pp';
+    const pusBar  = Math.min(NATIONAL.PCT_PICKUP_SUCCESS / TARGET_PUS  * 100, 100).toFixed(1);
+    const otBar   = Math.min(NATIONAL.PCT_PU_ON_TIME     / TARGET_OT   * 100, 100).toFixed(1);
+    const pontBar = Math.min(TABLEAU_PONTUALIDADE.PCT     / TARGET_PONT * 100, 100).toFixed(1);
+    const npBar   = Math.min(TARGET_NP / NATIONAL.PCT_NP               * 100, 100).toFixed(1);
+    const pusC    = pusColor(NATIONAL.PCT_PICKUP_SUCCESS);
+    const otC     = otColor(NATIONAL.PCT_PU_ON_TIME);
+    const pontC   = pontColor(TABLEAU_PONTUALIDADE.PCT);
+    const npC     = npColor(NATIONAL.PCT_NP);
+    const dL      = NATIONAL.DATA_MAX.slice(5).replace('-', '/');
+    const tbp = (lbl, val, pct, clr, dlt) =>
+      `<div class="kpi-tile">` +
+        `<div class="kpi-tile-label">${lbl}</div>` +
+        `<div class="kpi-tile-value" style="color:${clr}">${val}</div>` +
+        `<div class="kpi-target">` +
+          `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${clr}"></div></div>` +
+          `<span style="color:${clr}">${dlt}</span>` +
+        `</div>` +
+      `</div>`;
+    const tv = (lbl, val, sub) =>
+      `<div class="kpi-tile">` +
+        `<div class="kpi-tile-label">${lbl}</div>` +
+        `<div class="kpi-tile-value kpi-vol">${val}</div>` +
+        `<div class="kpi-target"><span>${sub}</span></div>` +
+      `</div>`;
+    document.getElementById('kpi-row-pct').innerHTML =
+      tbp('Pickup Success', fmtP(NATIONAL.PCT_PICKUP_SUCCESS), pusBar,  pusC,  pp(NATIONAL.PCT_PICKUP_SUCCESS - TARGET_PUS)) +
+      tbp('On Time',        fmtP(NATIONAL.PCT_PU_ON_TIME),     otBar,   otC,   pp(NATIONAL.PCT_PU_ON_TIME - TARGET_OT)) +
+      tbp('No Pickup',      fmtP(NATIONAL.PCT_NP),             npBar,   npC,   pp(NATIONAL.PCT_NP - TARGET_NP)) +
+      tbp('Pont. Tableau',  fmtP(TABLEAU_PONTUALIDADE.PCT),    pontBar, pontC, pp(TABLEAU_PONTUALIDADE.PCT - TARGET_PONT)) +
+      tv('Culp. Meli',     fmtP(NATIONAL.PCT_CULP_MELI),   'resp. Meli') +
+      tv('Culp. Seller',   fmtP(NATIONAL.PCT_CULP_SELLER), 'resp. Seller') +
+      tv('Culp. Local',    fmtP(NATIONAL.PCT_CULP_PLACE),  'resp. Local') +
+      tv('PU Offline',     fmtP(NATIONAL.PCT_PU_OFFLINE),  'sem registro');
+    document.getElementById('kpi-row-vol').innerHTML =
+      tv('Estimados',       fmtN(NATIONAL.ESTIMADOS_TOTAIS), 'Total \xB7 ' + dL) +
+      tv('Coletados PU',    fmtN(NATIONAL.COLETADOS_PU),     'Com classifica\xE7\xE3o') +
+      tv('No Pickup',       fmtN(NATIONAL.NO_PICKUP),        'N\xE3o coletados') +
+      tv('PU On Time',      fmtN(NATIONAL.PU_ON_TIME),       'Cumpriram SLA') +
+      tv('PU Late',         fmtN(NATIONAL.PU_LATE),          'Com atraso') +
+      tv('PU Offline',      fmtN(NATIONAL.PU_OFFLINE),       'Sem registro') +
+      tv('NP Culp. Meli',   fmtN(NATIONAL.NO_PU_ME),         'Falha Meli') +
+      tv('NP Culp. Seller', fmtN(NATIONAL.NO_PU_SELLER),     'Falha Seller');
+  }
+
+  // Chart: PUS% por facility top 15 excl SEM — cores por TARGET Q2 2026 (92.6%)
+  const facs = BY_FACILITY.filter(r => r.FACILITY_NAME !== 'SEM_FACILITY').slice(0,15);
+  new Chart(document.getElementById('c1-facility'), {
+    type:'bar',
+    data:{
+      labels: facs.map(r => `${r.FACILITY_NAME} (${r.SIGLA})`),
+      datasets:[
+        {
+          label:'PUS %',
+          data: facs.map(r => r.PUS_PCT),
+          // 3 tons: verde escuro >= meta+0.5pp | âmbar ±0.5pp | vermelho < meta-0.5pp
+          backgroundColor: facs.map(r => pusColor(r.PUS_PCT)+'CC'),
+          borderRadius:4, borderSkipped:false
+        },
+        {
+          label:`Target Q2 ${TARGET_PUS.toFixed(1)}%`,
+          data: Array(facs.length).fill(TARGET_PUS),
+          type:'line',
+          borderColor:'#3483FA',
+          borderWidth:2,
+          borderDash:[5,4],
+          pointRadius:0,
+          fill:false
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:10},boxWidth:12}},
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              const v = ctx.parsed.y.toFixed(2);
+              if(ctx.datasetIndex===1) return ` Target Q2 2026: ${v}%`;
+              const hub = facs[ctx.dataIndex];
+              const vs = (hub.PUS_PCT - TARGET_PUS).toFixed(2);
+              const sign = vs >= 0 ? '+' : '';
+              return ` PUS: ${v}% (${sign}${vs}pp vs target)`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40}},
+        y:{
+          min: Math.max(0, Math.min(...facs.map(r=>r.PUS_PCT)) - 5),
+          max: 102,
+          ticks:{font:{size:10},callback:v=>v+'%'},
+          grid:{color:'#F3F4F6'}
+        }
+      }
+    }
+  });
+
+  // Chart: Volume por carrier top 10 excl SEM
+  const cars = BY_CARRIER.filter(c=>c.CARRIER!=='SEM_CARRIER').slice(0,10);
+  new Chart(document.getElementById('c1-carrier'), {
+    type:'bar',
+    data:{
+      labels: cars.map(c=>c.CARRIER.length>22?c.CARRIER.substring(0,20)+'…':c.CARRIER),
+      datasets:[{
+        label:'Estimados',
+        data: cars.map(c=>c.EST),
+        // Volume: cor por PUS% da carrier — teal ok, âmbar atenção, vermelho crítico
+        backgroundColor: cars.map(c=>pusColor(c.PICKUP_SUCCESS_PCT)+'99'),
+        borderColor:     cars.map(c=>pusColor(c.PICKUP_SUCCESS_PCT)),
+        borderWidth:1,
+        borderRadius:4, borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>` ${fmtN(ctx.parsed.x)} envios`}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'#F3F4F6'}},
+        y:{ticks:{font:{size:10}}}
+      }
+    }
+  });
+
+  // Tabela facilities — usando FACILITY_NAME + cores por target
+  const tbody = document.getElementById('t1-facility');
+  let rank = 1;
+  BY_FACILITY.forEach(r => {
+    const isSem = r.FACILITY_NAME === 'SEM_FACILITY';
+    const pct = r.PUS_PCT;
+    const otPct = r.OT_PCT;
+    const barColor = pusColor(pct);
+    const barOtColor = otColor(otPct);
+    const vsTarget = (pct - TARGET_PUS).toFixed(2);
+    const vsTargetSign = vsTarget >= 0 ? '+' : '';
+    tbody.innerHTML += `
+      <tr>
+        <td class="rank">${isSem?'—':rank++}</td>
+        <td>
+          <span style="font-weight:700">${r.FACILITY_NAME}</span>
+          <span style="font-size:9px;color:var(--ml-gray-3);margin-left:4px">${r.SIGLA||''}</span>
+          ${r.REGIONAL?`<span style="font-size:9px;background:#F3F4F6;color:var(--mid);padding:1px 5px;border-radius:4px;margin-left:4px">${r.REGIONAL}</span>`:''}
+          ${isSem?'<span style="font-size:9px;color:var(--amber);background:var(--amber-lt);padding:1px 5px;border-radius:4px;margin-left:4px">sem mapeamento</span>':''}
+        </td>
+        <td class="num">${fmtN(r.EST)}</td>
+        <td class="num" style="color:var(--green)">${fmtN(r.COL)}</td>
+        <td class="num" style="color:${r.NP>0?'var(--red)':'var(--mid)'}">${fmtN(r.NP)}</td>
+        <td>
+          <div class="pct-bar">
+            <span style="font-weight:700;color:${barColor};min-width:44px">${pct.toFixed(2)}%</span>
+            <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
+          </div>
+          ${!isSem?`<span style="font-size:9px;color:${barColor}">${vsTargetSign}${vsTarget}pp</span>`:''}
+        </td>
+        <td>
+          <div class="pct-bar">
+            <span style="font-weight:700;color:${barOtColor};min-width:44px">${isSem?'—':otPct.toFixed(2)+'%'}</span>
+            <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${isSem?0:Math.min(otPct,100)}%;background:${barOtColor}"></div></div>
+          </div>
+        </td>
+      </tr>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// DADOS ABA 2 — Evolução Mensal
+// Fonte: BQ DM_SHP_XD_PICKUP — Jan/2025 a Abr/2026 — validado 2026-04-10
+// ══════════════════════════════════════════════════════════════
+// Fonte: Dashboard FM Tableau — Evolução KPIs — extraído 2026-04-10
+// PUS_PCT, OT_PCT, NP_PCT: lidos diretamente do Tableau (fórmula correta)
+// PONT_PCT: lido da view Tableau "Evolução KPIs" (Pontualidade = Paradas On Time / Paradas Concluídas)
+// EST/COL: volumes em unidades (aproximados via proporção dos totais Tableau)
+// Totais acumulados Tableau: EST=536.256.652 | COL PU=493.553.800 | PUS=92,04%
+const MONTHLY = [
+  {MES:"2025-01",EST:22188171,COL:Math.round(22188171*0.8932),OT_ABS:Math.round(22188171*0.8932*0.8009),PUS_PCT:89.32,OT_PCT:80.09,NP_PCT:10.68,PONT_PCT:89.01},
+  {MES:"2025-02",EST:20110258,COL:Math.round(20110258*0.9035),OT_ABS:Math.round(20110258*0.9035*0.8123),PUS_PCT:90.35,OT_PCT:81.23,NP_PCT:9.65,PONT_PCT:89.58},
+  {MES:"2025-03",EST:20420829,COL:Math.round(20420829*0.8999),OT_ABS:Math.round(20420829*0.8999*0.8081),PUS_PCT:89.99,OT_PCT:80.81,NP_PCT:10.01,PONT_PCT:89.30},
+  {MES:"2025-04",EST:20641147,COL:Math.round(20641147*0.9175),OT_ABS:Math.round(20641147*0.9175*0.8292),PUS_PCT:91.75,OT_PCT:82.92,NP_PCT:8.26,PONT_PCT:90.32},
+  {MES:"2025-05",EST:22057182,COL:Math.round(22057182*0.9251),OT_ABS:Math.round(22057182*0.9251*0.8370),PUS_PCT:92.51,OT_PCT:83.70,NP_PCT:7.49,PONT_PCT:90.43},
+  {MES:"2025-06",EST:27567312,COL:Math.round(27567312*0.9251),OT_ABS:Math.round(27567312*0.9251*0.8251),PUS_PCT:92.51,OT_PCT:82.51,NP_PCT:7.49,PONT_PCT:89.38},
+  {MES:"2025-07",EST:34012213,COL:Math.round(34012213*0.9302),OT_ABS:Math.round(34012213*0.9302*0.8322),PUS_PCT:93.02,OT_PCT:83.22,NP_PCT:6.98,PONT_PCT:89.76},
+  {MES:"2025-08",EST:32352450,COL:Math.round(32352450*0.9389),OT_ABS:Math.round(32352450*0.9389*0.8612),PUS_PCT:93.89,OT_PCT:86.12,NP_PCT:6.11,PONT_PCT:91.83},
+  {MES:"2025-09",EST:35253033,COL:Math.round(35253033*0.9333),OT_ABS:Math.round(35253033*0.9333*0.8525),PUS_PCT:93.33,OT_PCT:85.25,NP_PCT:6.67,PONT_PCT:91.29},
+  {MES:"2025-10",EST:38670102,COL:Math.round(38670102*0.8967),OT_ABS:Math.round(38670102*0.8967*0.8031),PUS_PCT:89.67,OT_PCT:80.31,NP_PCT:10.33,PONT_PCT:89.42},
+  {MES:"2025-11",EST:37792469,COL:Math.round(37792469*0.9207),OT_ABS:Math.round(37792469*0.9207*0.8200),PUS_PCT:92.07,OT_PCT:82.00,NP_PCT:7.93,PONT_PCT:88.82},
+  {MES:"2025-12",EST:39306123,COL:Math.round(39306123*0.9115),OT_ABS:Math.round(39306123*0.9115*0.8066),PUS_PCT:91.15,OT_PCT:80.66,NP_PCT:8.86,PONT_PCT:88.44}
+];
+// TODO P2: adicionar Jan–Abr/2026 ao MONTHLY quando dados validados estiverem disponíveis
+// Campos: {MES:"2026-01", EST:?, COL:?, OT_ABS:?, PUS_PCT:?, OT_PCT:?, NP_PCT:?, PONT_PCT:?}
+// Fonte: Dashboard FM Tableau — Evolução KPIs — extrair após validação no BQ
+// Status: BLOQUEADO — sem dados reais no projeto em 2026-04-13
+
+const TABLEAU_PONTUALIDADE = {
+  PCT: 89.70,
+  PARADAS_CONCLUIDAS: 62724037,
+  PARADAS_ON_TIME: 56264569
+};
+
+// Contribution por Regional — YTD 2026 (Jan-Abr) validado vs Dashboard FM 2026-04-10
+// Estrutura: COL = Coletados PU (numerador), EST = Estimados (COL/PUS_PCT), META_COL = EST*91.80%
+// Fonte: Dashboard FM Tableau — Deep Pickup Success — 2026-04-10
+const BY_CONTRIB_REGIONAL = [
+  {REGIONAL:"SP2",         COL:202191222, PUS_PCT:91.59, META_COL:202662115, GAP_COL:-470893,  CONTRIB_PCT:-0.088},
+  {REGIONAL:"SPIO",        COL:117019913, PUS_PCT:92.19, META_COL:116531142, GAP_COL:488771,   CONTRIB_PCT:0.091},
+  {REGIONAL:"SPC + MEGAS", COL:149307455, PUS_PCT:92.00, META_COL:148448000, GAP_COL:859455,   CONTRIB_PCT:0.160},
+  {REGIONAL:"RJ/ES",       COL:34008964,  PUS_PCT:93.23, META_COL:33469088,  GAP_COL:539876,   CONTRIB_PCT:0.101},
+  {REGIONAL:"SUL",         COL:38514087,  PUS_PCT:91.87, META_COL:38486317,  GAP_COL:27770,    CONTRIB_PCT:0.005},
+  {REGIONAL:"MG",          COL:28723150,  PUS_PCT:91.82, META_COL:28715042,  GAP_COL:8108,     CONTRIB_PCT:0.002},
+  {REGIONAL:"NONECO",      COL:9863399,   PUS_PCT:93.18, META_COL:9722114,   GAP_COL:141285,   CONTRIB_PCT:0.026},
+  {REGIONAL:"SP1",         COL:32945862,  PUS_PCT:92.19, META_COL:32846862,  GAP_COL:99000,    CONTRIB_PCT:0.018},
+  {REGIONAL:"SP3",         COL:32126,     PUS_PCT:94.82, META_COL:31103,     GAP_COL:1023,     CONTRIB_PCT:0.000}
+].map(r => ({...r, EST: Math.round(r.COL / (r.PUS_PCT/100))}));
+const META_PUS_BASELINE = 91.80; // conforme Dashboard FM Tableau — 2026-04-10
+
+// ══════════════════════════════════════════════════════════════
+// ABA 2 — Evolução KPIs (dados reais mensais)
+// ══════════════════════════════════════════════════════════════
+function initAba2() {
+  const fmt = n => n.toLocaleString('pt-BR');
+  const labels = MONTHLY.map(m => {
+    const p = m.MES.split('-'); return p[1] + '/' + p[0].slice(2);
+  });
+
+  // Cards — lidos do NATIONAL (mesma fonte da Aba1)
+  document.getElementById('a2-pus-val').textContent     = NATIONAL.PCT_PICKUP_SUCCESS + '%';
+  document.getElementById('a2-pus-est').textContent     = fmt(NATIONAL.ESTIMADOS_TOTAIS);
+  document.getElementById('a2-pus-col').textContent     = fmt(NATIONAL.COLETADOS_PU);
+  document.getElementById('a2-ot-val').textContent      = NATIONAL.PCT_PU_ON_TIME + '%';
+  document.getElementById('a2-ot-ontime').textContent   = fmt(NATIONAL.PU_ON_TIME);
+  document.getElementById('a2-np-val').textContent      = NATIONAL.PCT_NP + '%';
+  document.getElementById('a2-np-naoCol').textContent   = fmt(NATIONAL.NO_PICKUP);
+  document.getElementById('a2-culp-meli').textContent   = NATIONAL.PCT_CULP_MELI + '%';
+  document.getElementById('a2-culp-seller').textContent = NATIONAL.PCT_CULP_SELLER + '%';
+  document.getElementById('a2-culp-place').textContent  = NATIONAL.PCT_CULP_PLACE + '%';
+  document.getElementById('a2-pont-val').textContent    = TABLEAU_PONTUALIDADE.PCT.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
+  document.getElementById('a2-pont-col').textContent    = fmt(TABLEAU_PONTUALIDADE.PARADAS_CONCLUIDAS);
+  document.getElementById('a2-pont-ontime').textContent = fmt(TABLEAU_PONTUALIDADE.PARADAS_ON_TIME);
+
+  // Plugin: linha de meta tracejada
+  const metaLine = (yVal, color) => ({
+    id: 'ml' + yVal,
+    afterDraw(chart) {
+      const {ctx, chartArea, scales} = chart;
+      if (!scales.y) return;
+      const y = scales.y.getPixelForValue(yVal);
+      if (y < chartArea.top || y > chartArea.bottom) return;
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = color + 'AA';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y);
+      ctx.stroke(); ctx.restore();
+    }
+  });
+
+  // Plugin: data labels nos pontos
+  const dataLabels = {
+    id: 'dl',
+    afterDatasetsDraw(chart) {
+      const {ctx, data} = chart;
+      data.datasets.forEach((ds, i) => {
+        chart.getDatasetMeta(i).data.forEach((pt, idx) => {
+          const v = ds.data[idx];
+          if (v == null) return;
+          ctx.save();
+          ctx.font = 'bold 8px Inter,sans-serif';
+          ctx.fillStyle = ds.borderColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(v.toFixed(2) + '%', pt.x, pt.y - 4);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  const mkLine = (data, color, metaVal) => ({
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data, borderColor: color, backgroundColor: color + '15',
+        fill: true, tension: 0.3,
+        pointRadius: 3, pointBackgroundColor: color,
+        pointBorderColor: '#fff', pointBorderWidth: 1.5, borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: {padding: {top: 18}},
+      plugins: {
+        legend: {display: false},
+        tooltip: {backgroundColor: '#1A1A2E', callbacks: {label: ctx => ` ${ctx.parsed.y.toFixed(2)}%`}}
+      },
+      scales: {
+        x: {ticks: {font: {size: 8}, color: '#6B7280'}, grid: {color: '#F3F4F6'}},
+        y: {
+          min: parseFloat((Math.min(...data) - 1.5).toFixed(0)),
+          max: parseFloat((Math.max(...data) + 1.5).toFixed(0)),
+          ticks: {font: {size: 8}, callback: v => v + '%'},
+          grid: {color: '#F3F4F6'}
+        }
+      }
+    },
+    plugins: [metaVal == null ? null : metaLine(metaVal, color), dataLabels].filter(Boolean)
+  });
+
+  new Chart(document.getElementById('c2-pus-line'),  mkLine(MONTHLY.map(m=>m.PUS_PCT), '#16A34A', TARGET_PUS));
+  new Chart(document.getElementById('c2-ot-line'),   mkLine(MONTHLY.map(m=>m.OT_PCT),  '#0EA5E9', TARGET_OT));
+  new Chart(document.getElementById('c2-np-line'),   mkLine(MONTHLY.map(m=>m.NP_PCT),  '#DC2626', TARGET_NP));
+  new Chart(document.getElementById('c2-pont-line'), mkLine(MONTHLY.map(m=>m.PONT_PCT),'#0D9488', null));
+
+  // Pizza: distribuição de culpa do NP
+  new Chart(document.getElementById('c2-np-pie'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Meli', 'Seller', 'Place'],
+      datasets: [{
+        data: [NATIONAL.PCT_CULP_MELI, NATIONAL.PCT_CULP_SELLER, NATIONAL.PCT_CULP_PLACE],
+        backgroundColor: ['#0EA5E9', '#F59E0B', '#16A34A'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: {callbacks: {label: ctx => ` ${ctx.label}: ${ctx.parsed}%`}}
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ABA 3 — Deep Pickup Success
+// ══════════════════════════════════════════════════════════════
+
+function initAba3() {
+  const labels = MONTHLY.map(m => m.MES.replace('20','').replace('-','/'));
+  const lastIdx = MONTHLY.length - 1;
+  const PUS_ACUM_TABLEAU = 92.04;
+  const EST_ACUM_TABLEAU = 536256652;
+  const COL_ACUM_TABLEAU = 493553800;
+  const GAP_ACUM = (PUS_ACUM_TABLEAU - META_PUS_BASELINE).toFixed(2);
+  document.getElementById('e3-pus-val').textContent = PUS_ACUM_TABLEAU.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  document.getElementById('e3-pus-val').style.color = PUS_ACUM_TABLEAU >= META_PUS_BASELINE ? '#00A650' : '#F23D4F';
+  document.getElementById('e3-est-val').textContent = EST_ACUM_TABLEAU.toLocaleString('pt-BR');
+  document.getElementById('e3-col-val').textContent = COL_ACUM_TABLEAU.toLocaleString('pt-BR');
+  document.getElementById('e3-gap-val').textContent = (GAP_ACUM >= 0 ? '+' : '') + GAP_ACUM + 'pp';
+  document.getElementById('e3-gap-val').style.color = GAP_ACUM >= 0 ? '#00A650' : '#F23D4F';
+  document.getElementById('e3-gap-status').textContent = 'Gap: +' + GAP_ACUM + 'pp · ' + (GAP_ACUM >= 0 ? 'Acima da meta' : 'Abaixo da meta');
+  const metaLP = (yVal) => ({id:'ml3'+yVal,afterDraw(chart){const{ctx,chartArea,scales}=chart;if(!scales.y)return;const y=scales.y.getPixelForValue(yVal);if(y<chartArea.top||y>chartArea.bottom)return;ctx.save();ctx.setLineDash([6,4]);ctx.strokeStyle='#6B7280';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();ctx.restore();}});
+  // PUS linha
+  const pusData=MONTHLY.map(m=>m.PUS_PCT);
+  Chart.getChart('c3-evol-pus-line')?.destroy();
+  new Chart(document.getElementById('c3-evol-pus-line'),{type:'line',data:{labels,datasets:[{label:'PUS%',data:pusData,borderColor:'#FFE600',backgroundColor:'#FFE60018',fill:true,tension:0.3,pointRadius:pusData.map((_,i)=>i===lastIdx?8:4),pointBackgroundColor:pusData.map((_,i)=>i===lastIdx?'#FF6900':'#FFE600'),pointBorderColor:'#fff',pointBorderWidth:1.5,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A2E',callbacks:{title:ctx=>`PUS ${ctx[0].label}`,label:ctx=>[` PUS: ${ctx.parsed.y.toFixed(2)}%`,` Gap: ${(ctx.parsed.y-META_PUS_BASELINE).toFixed(2)}pp`]}}},scales:{x:{ticks:{font:{size:9.5},color:'#6B7280'},grid:{color:'#F3F4F6'}},y:{min:Math.floor(Math.min(...pusData))-0.5,max:Math.ceil(Math.max(...pusData))+0.5,ticks:{font:{size:10},callback:v=>v+'%'},grid:{color:'#F3F4F6'}}}},plugins:[metaLP(META_PUS_BASELINE)]});
+  // Gap donut
+  Chart.getChart('c3-evol-gap-donut')?.destroy();
+  new Chart(document.getElementById('c3-evol-gap-donut'),{type:'doughnut',data:{labels:['Meta','Gap'],datasets:[{data:[META_PUS_BASELINE,Math.abs(PUS_ACUM_TABLEAU-META_PUS_BASELINE)],backgroundColor:['#E5E7EB',PUS_ACUM_TABLEAU>=META_PUS_BASELINE?'#16A34A':'#DC2626'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataIndex===0?` Meta: ${META_PUS_BASELINE}%`:` PUS: ${PUS_ACUM_TABLEAU}%`}}}}});
+  // Gap barras
+  const gapData=MONTHLY.map(m=>parseFloat((m.PUS_PCT-META_PUS_BASELINE).toFixed(2)));
+  function gapBarColor(v,a){if(v>=5)return`#15803D${a}`;if(v>=2)return`#16A34A${a}`;if(v>=0.5)return`#22C55E${a}`;if(v>=0)return`#86EFAC${a}`;if(v>=-1)return`#FCD34D${a}`;return`#EF4444${a}`;}
+  Chart.getChart('c3-evol-gap-bar')?.destroy();
+  new Chart(document.getElementById('c3-evol-gap-bar'),{type:'bar',data:{labels,datasets:[{data:gapData,backgroundColor:gapData.map(v=>gapBarColor(v,'BB')),borderColor:gapData.map(v=>gapBarColor(v,'FF')),borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A2E',callbacks:{title:ctx=>`Gap ${ctx[0].label}`,label:ctx=>[` Gap: ${ctx.parsed.y>=0?'+':''}${ctx.parsed.y.toFixed(2)}pp`]}}},scales:{x:{ticks:{font:{size:9.5},color:'#6B7280'},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>(v>=0?'+':'')+v+'pp'},grid:{color:'#F3F4F6'}}}}});
+  // Regional PUS bar
+  const regLabels=BY_CONTRIB_REGIONAL.map(r=>r.REGIONAL),regPus=BY_CONTRIB_REGIONAL.map(r=>r.PUS_PCT);
+  const maxEst=Math.max(...BY_CONTRIB_REGIONAL.map(r=>r.EST));
+  const regColors=BY_CONTRIB_REGIONAL.map(r=>{const i=Math.round(60+(r.EST/maxEst)*140);return`rgba(13,148,136,${(i/255).toFixed(2)})`;});
+  Chart.getChart('c3-evol-reg-pus')?.destroy();
+  new Chart(document.getElementById('c3-evol-reg-pus'),{type:'bar',data:{labels:regLabels,datasets:[{data:regPus,backgroundColor:regColors,borderColor:regColors.map(c=>c.replace(/,[\d.]+\)$/,',1)')),borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A2E',callbacks:{title:ctx=>BY_CONTRIB_REGIONAL[ctx[0].dataIndex].REGIONAL,label:ctx=>{const r=BY_CONTRIB_REGIONAL[ctx[0].dataIndex];return[` PUS: ${r.PUS_PCT.toFixed(2)}%`,` Contrib: ${r.CONTRIB_PCT>=0?'+':''}${r.CONTRIB_PCT.toFixed(3)}%`];}}}},scales:{x:{min:88,max:96,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F3F4F6'}},y:{ticks:{font:{size:10}},grid:{display:false}}}}});
+  // Waterfall
+  const wfData=[...BY_CONTRIB_REGIONAL].sort((a,b)=>{if(a.CONTRIB_PCT>=0&&b.CONTRIB_PCT>=0)return b.CONTRIB_PCT-a.CONTRIB_PCT;if(a.CONTRIB_PCT<0&&b.CONTRIB_PCT<0)return a.CONTRIB_PCT-b.CONTRIB_PCT;return a.CONTRIB_PCT>=0?-1:1;});
+  let run=0;const wfF=wfData.map(r=>{const b=run;run+=r.CONTRIB_PCT;return r.CONTRIB_PCT>=0?[b,b+r.CONTRIB_PCT]:[b+r.CONTRIB_PCT,b];});
+  Chart.getChart('c3-evol-reg-contrib')?.destroy();
+  new Chart(document.getElementById('c3-evol-reg-contrib'),{type:'bar',data:{labels:wfData.map(r=>r.REGIONAL),datasets:[{data:wfF,backgroundColor:wfData.map(r=>r.CONTRIB_PCT>=0?'#16A34ABB':'#EF4444BB'),borderColor:wfData.map(r=>r.CONTRIB_PCT>=0?'#15803D':'#DC2626'),borderWidth:1,borderRadius:2},{type:'line',data:Array(wfData.length).fill(run),borderColor:'#3483FA',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A2E',callbacks:{title:ctx=>wfData[ctx[0].dataIndex].REGIONAL,label:ctx=>{if(ctx.datasetIndex===1)return null;const d=wfData[ctx.dataIndex];const v=d.CONTRIB_PCT;return[` Contribution: ${v>=0?'+':''}${v.toFixed(3)}%`,` PUS: ${d.PUS_PCT.toFixed(2)}%`];},filter:item=>item.datasetIndex===0}}},scales:{x:{ticks:{font:{size:9.5},color:'#6B7280'},grid:{display:false}},y:{ticks:{font:{size:10},color:'#6B7280',callback:v=>(v>=0?'+':'')+v.toFixed(2)+'%'},grid:{color:'#F3F4F6'}}}},plugins:[{id:'wfL3',afterDatasetsDraw(chart){const{ctx}=chart;const meta=chart.getDatasetMeta(0);ctx.save();ctx.font='bold 9px Segoe UI,sans-serif';ctx.textAlign='center';meta.data.forEach((el,i)=>{const v=wfData[i].CONTRIB_PCT;ctx.fillStyle=v>=0?'#00A650':'#F23D4F';ctx.fillText((v>=0?'+':'')+v.toFixed(3)+'%',el.x,v>=0?el.y-5:el.y+14);});ctx.restore();}}]});
+  // Tabela regional
+  const tE=BY_CONTRIB_REGIONAL.reduce((s,r)=>s+r.EST,0),tC=BY_CONTRIB_REGIONAL.reduce((s,r)=>s+r.COL,0),tG=BY_CONTRIB_REGIONAL.reduce((s,r)=>s+r.GAP_COL,0),tP=(tC/tE*100).toFixed(2),tContr=BY_CONTRIB_REGIONAL.reduce((s,r)=>s+r.CONTRIB_PCT,0).toFixed(3);
+  document.getElementById('t3-evol-regional').innerHTML=`<thead><tr><th>Regional</th><th class="num">Pickup Success</th><th class="num">Coletados PU</th><th class="num">Meta Coletado...</th><th class="num">Gap Coletados...</th><th class="num">Contribution (%)</th></tr></thead><tbody><tr style="background:#F9FAFB;font-weight:700"><td>MLB</td><td class="num" style="color:${parseFloat(tP)>=META_PUS_BASELINE?'var(--green)':'var(--red)'}">${fmtP(parseFloat(tP))}</td><td class="num">${fmtN(tC)}</td><td class="num">${fmtN(BY_CONTRIB_REGIONAL.reduce((s,r)=>s+r.META_COL,0))}</td><td class="num" style="color:${tG>=0?'var(--green)':'var(--red)'}">${tG>=0?'+':''}${fmtN(tG)}</td><td class="num" style="color:${parseFloat(tContr)>=0?'var(--green)':'var(--red)'}">${parseFloat(tContr)>=0?'+':''}${tContr}%</td></tr>${BY_CONTRIB_REGIONAL.map(r=>{const ab=r.PUS_PCT>=META_PUS_BASELINE;return`<tr><td>${ab?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'} <b>${r.REGIONAL}</b></td><td class="num" style="color:${ab?'var(--green)':'var(--red)'}">${fmtP(r.PUS_PCT)}</td><td class="num">${fmtN(r.COL)}</td><td class="num">${fmtN(r.META_COL)}</td><td class="num" style="color:${r.GAP_COL>=0?'var(--green)':'var(--red)'}">${r.GAP_COL>=0?'+':''}${fmtN(r.GAP_COL)}</td><td class="num" style="font-weight:700;color:${r.CONTRIB_PCT>=0?'var(--green)':'var(--red)'}">${r.CONTRIB_PCT>=0?'+':''}${r.CONTRIB_PCT.toFixed(3)}%</td></tr>`;}).join('')}</tbody>`;
+  // Top Offenders por Hub
+  const facs=BY_FACILITY.filter(d=>d.FACILITY_NAME!=='SEM_FACILITY').map(d=>{const mc=d.EST*META_PUS_BASELINE/100;const gc=d.COL-mc;const gp=d.PUS_PCT-META_PUS_BASELINE;const ct=gc/NATIONAL.ESTIMADOS_TOTAIS*100;return{...d,mc,gc,gp,ct};}).sort((a,b)=>Math.abs(b.ct)-Math.abs(a.ct));
+  const fTE=facs.reduce((s,d)=>s+d.EST,0),fTC=facs.reduce((s,d)=>s+d.COL,0),fTMC=facs.reduce((s,d)=>s+d.mc,0),fTGC=facs.reduce((s,d)=>s+d.gc,0),fTP=fTC/fTE*100,fTCt=facs.reduce((s,d)=>s+d.ct,0);
+  document.getElementById('t3-top-offenders').innerHTML=`<thead><tr><th>#</th><th>Hub</th><th>Regional</th><th class="num">Estimados</th><th class="num">Coletados PU</th><th class="num">Meta Coletados PU</th><th class="num">Gap Coletados PU vs Meta</th><th class="num">Pickup Success</th><th class="num">Gap (PUS x Meta)</th><th class="num">Contribution D-1 (%)</th></tr></thead><tbody><tr style="background:#F9FAFB;font-weight:700"><td colspan="3">MLB</td><td class="num">${fmtN(fTE)}</td><td class="num">${fmtN(fTC)}</td><td class="num">${fmtN(Math.round(fTMC))}</td><td class="num" style="color:${fTGC>=0?'var(--green)':'var(--red)'}">${fTGC>=0?'+':''}${fmtN(Math.round(fTGC))}</td><td class="num" style="color:${fTP>=META_PUS_BASELINE?'var(--green)':'var(--red)'}">${fTP>=META_PUS_BASELINE?'✓':'✗'} ${fmtP(fTP)}</td><td class="num" style="color:${fTP-META_PUS_BASELINE>=0?'var(--green)':'var(--red)'}">${fTP-META_PUS_BASELINE>=0?'+':''}${(fTP-META_PUS_BASELINE).toFixed(2)}%</td><td class="num" style="color:${fTCt>=0?'var(--green)':'var(--red)'}">${fTCt>=0?'+':''}${fTCt.toFixed(3)}%</td></tr>${facs.map((d,i)=>{const ab=d.PUS_PCT>=META_PUS_BASELINE;return`<tr><td class="rank">${i+1}</td><td style="font-weight:600">${d.FACILITY_NAME}</td><td style="font-size:9px;color:var(--mid)">${d.REGIONAL||''}</td><td class="num">${fmtN(d.EST)}</td><td class="num">${fmtN(d.COL)}</td><td class="num">${fmtN(Math.round(d.mc))}</td><td class="num" style="color:${d.gc>=0?'var(--green)':'var(--red)'}">${d.gc>=0?'+':''}${fmtN(Math.round(d.gc))}</td><td class="num">${ab?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'} ${fmtP(d.PUS_PCT)}</td><td class="num" style="color:${d.gp>=0?'var(--green)':'var(--red)'}">${d.gp>=0?'+':''}${d.gp.toFixed(2)}%</td><td class="num" style="font-weight:700;color:${d.ct>=0?'var(--green)':'var(--red)'}">${d.ct>=0?'+':''}${d.ct.toFixed(3)}%</td></tr>`;}).join('')}</tbody>`;
+  // ─── fim initAba3 ───
+}
+
+// ══════════════════════════════════════════════════════════════
+// ABA 4 — Cubo No Pickup
+// ══════════════════════════════════════════════════════════════
+function initAba4() {
+  // ── IMPACT CARDS — calculados dinamicamente de BY_FACILITY e BY_CARRIER ──
+  // Antes estavam hardcoded com valores errados (pre-COALESCE fix)
+  const semCar = BY_CARRIER.find(c=>c.CARRIER==='SEM_CARRIER') || {};
+  const mappedFacs = BY_FACILITY.filter(d=>d.FACILITY_NAME!=='SEM_FACILITY');
+  const totalNPMapped = mappedFacs.reduce((s,d)=>s+d.NO_PICKUP,0);
+  const topFacByNP = [...mappedFacs].sort((a,b)=>b.NO_PICKUP-a.NO_PICKUP).slice(0,2);
+  const topCarByNP = BY_CARRIER.filter(c=>c.CARRIER!=='SEM_CARRIER').sort((a,b)=>b.NO_PICKUP-a.NO_PICKUP).slice(0,3);
+  const npPct = NATIONAL.PCT_NP;
+  const npOnTarget = npPct <= TARGET_NP;
+
+  document.getElementById('aba4-impact-row1').innerHTML = `
+    <div class="impact-card alert" style="grid-column:span 2">
+      <div class="impact-label">SEM_CARRIER — Envios sem Transportadora Mapeada</div>
+      <div class="impact-value" style="color:var(--red)">${fmtN(semCar.NO_PICKUP||0)}</div>
+      <div class="impact-sub">${fmtP(semCar.NP_PCT||0)} de No Pickup · ${fmtN(semCar.EST||0)} estimados (${((semCar.EST||0)/NATIONAL.ESTIMADOS_TOTAIS*100).toFixed(1)}% do total)</div>
+      <span class="impact-badge" style="background:#FEE2E2;color:#991B1B">CRITICO — Carrier nao identificado (${fmtP(semCar.NP_PCT||0)} NP rate)</span>
+    </div>
+    <div class="impact-card">
+      <div class="impact-label">No Pickup Nacional</div>
+      <div class="impact-value" style="color:var(--red)">${fmtN(NATIONAL.NO_PICKUP)}</div>
+      <div class="impact-sub">${fmtP(npPct)} do denominador</div>
+      <span class="impact-badge" style="background:${npOnTarget?'var(--green-lt)':'#FEE2E2'};color:${npOnTarget?'var(--green-dk)':'#991B1B'}">
+        Meta Q2: ${TARGET_NP}% — ${npOnTarget?'dentro do target':'ACIMA DO TARGET'}
+      </span>
+    </div>
+    <div class="impact-card">
+      <div class="impact-label">Facilities Mapeadas</div>
+      <div class="impact-value" style="color:var(--green)">${mappedFacs.length}</div>
+      <div class="impact-sub">com no pickup mapeado</div>
+      <span class="impact-badge" style="background:var(--blue-lt);color:var(--blue)">${fmtN(totalNPMapped)} NPs em facilities mapeadas</span>
+    </div>
+  `;
+
+  document.getElementById('aba4-impact-row2').innerHTML = [
+    ...topCarByNP.map(c=>`
+      <div class="impact-card">
+        <div class="impact-label">${c.CARRIER.length>22?c.CARRIER.substring(0,20)+'…':c.CARRIER}</div>
+        <div class="impact-value" style="color:var(--amber)">${fmtN(c.NO_PICKUP)}</div>
+        <div class="impact-sub">NP abs · ${fmtP(c.NP_PCT||c.NO_PICKUP_PCT)} · carrier</div>
+      </div>`),
+    ...topFacByNP.map(f=>`
+      <div class="impact-card">
+        <div class="impact-label">${f.FACILITY_NAME} <span style="font-size:9px;color:var(--ml-gray-3)">(${f.SIGLA})</span></div>
+        <div class="impact-value" style="color:var(--amber)">${fmtN(f.NO_PICKUP)}</div>
+        <div class="impact-sub">NP abs · ${fmtP(f.NP_PCT||f.NO_PICKUP_PCT)} · facility</div>
+      </div>`)
+  ].join('');
+  // ── FIM IMPACT CARDS ──
+
+  // Stacked bar top 12 excl SEM
+  const top12 = BY_FACILITY.filter(d=>d.FACILITY_NAME!=='SEM_FACILITY')
+    .sort((a,b)=>b.NO_PICKUP-a.NO_PICKUP).slice(0,12);
+
+  new Chart(document.getElementById('c4-stack'), {
+    type:'bar',
+    data:{
+      labels: top12.map(d=>d.FACILITY_NAME),
+      datasets:[
+        {label:'Coletados',data:top12.map(d=>d.COLETADOS),backgroundColor:'#059669cc',borderColor:'#059669',borderWidth:1,borderRadius:3},
+        {label:'No Pickup',data:top12.map(d=>d.NO_PICKUP),backgroundColor:'#DC2626cc',borderColor:'#DC2626',borderWidth:1,borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{font:{size:10.5},color:'#374151',boxWidth:12,padding:12}},
+        tooltip:{backgroundColor:'#1A1A2E',callbacks:{label(ctx){return ` ${ctx.dataset.label}: ${fmtN(ctx.raw)}`}}}
+      },
+      scales:{
+        x:{stacked:true,ticks:{font:{size:10},color:'#374151'},grid:{display:false}},
+        y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'k',font:{size:10},color:'#6B7280'},grid:{color:'#F3F4F6'}}
+      }
+    }
+  });
+
+  // Tabela pivot facilities (ordem NP desc)
+  const facSorted = [...BY_FACILITY].sort((a,b)=>b.NO_PICKUP-a.NO_PICKUP);
+  const tblF = document.getElementById('t4-fac');
+  tblF.innerHTML = `<thead><tr>
+    <th>#</th><th>Facility</th>
+    <th class="num">Denominador</th><th class="num">Coletados</th>
+    <th class="num">No Pickup abs</th><th class="num">NP%</th>
+    <th class="num">PUS%</th><th class="num">OT%</th>
+  </tr></thead><tbody>${
+    facSorted.map((d,i)=>{
+      const isSem=d.FACILITY_NAME==='SEM_FACILITY';
+      return `<tr${isSem?' class="sem-row"':''}>
+        <td class="rank">${i+1}</td>
+        <td><span style="font-weight:600">${d.FACILITY_NAME}</span> <span style="font-size:9px;color:var(--ml-gray-3)">${d.SIGLA||""}</span>${isSem?' <span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-weight:700">NAO MAPEADO</span>':''}</td>
+        <td class="num">${fmtN(d.DENOMINADOR)}</td>
+        <td class="num">${fmtN(d.COLETADOS)}</td>
+        <td class="num" style="font-weight:700;color:${d.NO_PICKUP>100?'var(--red)':d.NO_PICKUP>0?'var(--amber)':'var(--green)'}">${fmtN(d.NO_PICKUP)}</td>
+        <td class="num">${npPill(d.NO_PICKUP_PCT)}</td>
+        <td class="num">${pusPill(d.PICKUP_SUCCESS_PCT)}</td>
+        <td class="num">${fmtP(d.PUS_ON_TIME_PCT)}</td>
+      </tr>`;
+    }).join('')
+  }</tbody>`;
+
+  // Tabela pivot carriers (ordem NP desc)
+  const carSorted = [...BY_CARRIER].sort((a,b)=>b.NO_PICKUP-a.NO_PICKUP);
+  const tblC = document.getElementById('t4-car');
+  tblC.innerHTML = `<thead><tr>
+    <th>#</th><th>Transportadora</th>
+    <th class="num">Denominador</th><th class="num">Coletados</th>
+    <th class="num">No Pickup abs</th><th class="num">NP%</th>
+    <th class="num">PUS%</th><th class="num">OT%</th>
+  </tr></thead><tbody>${
+    carSorted.map((d,i)=>{
+      const isSem=d.CARRIER==='SEM_CARRIER';
+      return `<tr${isSem?' class="sem-row"':''}>
+        <td class="rank">${i+1}</td>
+        <td><span style="font-weight:600">${d.CARRIER}</span>${isSem?' <span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-weight:700">NAO MAPEADO</span>':''}</td>
+        <td class="num">${fmtN(d.DENOMINADOR)}</td>
+        <td class="num">${fmtN(d.COLETADOS)}</td>
+        <td class="num" style="font-weight:700;color:${d.NO_PICKUP>100?'var(--red)':d.NO_PICKUP>0?'var(--amber)':'var(--green)'}">${fmtN(d.NO_PICKUP)}</td>
+        <td class="num">${npPill(d.NO_PICKUP_PCT)}</td>
+        <td class="num">${pusPill(d.PICKUP_SUCCESS_PCT)}</td>
+        <td class="num">${fmtP(d.PUS_ON_TIME_PCT)}</td>
+      </tr>`;
+    }).join('')
+  }</tbody>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DADOS ABA 5 — Aderência Perfil de Veículo
+// Fonte: BT_SHP_LOGISTIC_FM_ROUTE + DM_SHP_ROUTES_FIRST_MILE — D-1 2026-04-09
+// Critério: Match=AGG_EXEC==AGG_PLAN | Upgrade=M3_EXEC>M3_PLAN | Downgrade=M3_EXEC<M3_PLAN
+// ══════════════════════════════════════════════════════════════
+const ADH_NACIONAL = {TOTAL:35301,MATCH:27129,UPGRADE:1085,DOWNGRADE:1189,OUTROS:5898,MATCH_PCT:76.85,UPGRADE_PCT:3.07,DOWNGRADE_PCT:3.37};
+
+const BY_ADH_REGIONAL = [
+  {REGIONAL:"SPC + MEGAS",TOTAL:11513,MATCH:9869,UPGRADE:372,DOWNGRADE:539,MATCH_PCT:85.72,UPGRADE_PCT:3.23,DOWNGRADE_PCT:4.68},
+  {REGIONAL:"SPIO",TOTAL:6483,MATCH:4080,UPGRADE:181,DOWNGRADE:124,MATCH_PCT:62.93,UPGRADE_PCT:2.79,DOWNGRADE_PCT:1.91},
+  {REGIONAL:"SUL",TOTAL:5017,MATCH:3598,UPGRADE:92,DOWNGRADE:71,MATCH_PCT:71.72,UPGRADE_PCT:1.83,DOWNGRADE_PCT:1.42},
+  {REGIONAL:"SP2",TOTAL:2244,MATCH:1835,UPGRADE:54,DOWNGRADE:78,MATCH_PCT:81.77,UPGRADE_PCT:2.41,DOWNGRADE_PCT:3.48},
+  {REGIONAL:"RJ/ES",TOTAL:1890,MATCH:1085,UPGRADE:82,DOWNGRADE:142,MATCH_PCT:57.41,UPGRADE_PCT:4.34,DOWNGRADE_PCT:7.51},
+  {REGIONAL:"MG",TOTAL:1525,MATCH:766,UPGRADE:68,DOWNGRADE:24,MATCH_PCT:50.23,UPGRADE_PCT:4.46,DOWNGRADE_PCT:1.57},
+  {REGIONAL:"NONECO",TOTAL:601,MATCH:249,UPGRADE:31,DOWNGRADE:37,MATCH_PCT:41.43,UPGRADE_PCT:5.16,DOWNGRADE_PCT:6.16}
+];
+
+const BY_ADH_HUB = [
+  {HUB:"GRU II",SIGLA:"BRXSP10",REGIONAL:"SPC + MEGAS",TOTAL:5720,MATCH:5087,UPGRADE:70,DOWNGRADE:148,MATCH_PCT:88.93,UPGRADE_PCT:1.22,DOWNGRADE_PCT:2.59,IMPACTO_DWN:0.4193},
+  {HUB:"ARE",SIGLA:"ARENA",REGIONAL:"SPC + MEGAS",TOTAL:3920,MATCH:3391,UPGRADE:252,DOWNGRADE:277,MATCH_PCT:86.51,UPGRADE_PCT:6.43,DOWNGRADE_PCT:7.07,IMPACTO_DWN:0.7847},
+  {HUB:"CWB",SIGLA:"BRPR01",REGIONAL:"SUL",TOTAL:3156,MATCH:2632,UPGRADE:17,DOWNGRADE:36,MATCH_PCT:83.4,UPGRADE_PCT:0.54,DOWNGRADE_PCT:1.14,IMPACTO_DWN:0.102},
+  {HUB:"ZN",SIGLA:"BRXSP16",REGIONAL:"SP2",TOTAL:2244,MATCH:1835,UPGRADE:54,DOWNGRADE:78,MATCH_PCT:81.77,UPGRADE_PCT:2.41,DOWNGRADE_PCT:3.48,IMPACTO_DWN:0.221},
+  {HUB:"CPS",SIGLA:"CAMPINAS",REGIONAL:"SPIO",TOTAL:2148,MATCH:1426,UPGRADE:114,DOWNGRADE:8,MATCH_PCT:66.39,UPGRADE_PCT:5.31,DOWNGRADE_PCT:0.37,IMPACTO_DWN:0.0227},
+  {HUB:"RAO",SIGLA:"BRXSP5",REGIONAL:"SPIO",TOTAL:1880,MATCH:1289,UPGRADE:34,DOWNGRADE:66,MATCH_PCT:68.56,UPGRADE_PCT:1.81,DOWNGRADE_PCT:3.51,IMPACTO_DWN:0.187},
+  {HUB:"SBC",SIGLA:"XSP4",REGIONAL:"SPC + MEGAS",TOTAL:1873,MATCH:1391,UPGRADE:50,DOWNGRADE:114,MATCH_PCT:74.27,UPGRADE_PCT:2.67,DOWNGRADE_PCT:6.09,IMPACTO_DWN:0.3229},
+  {HUB:"RJ",SIGLA:"BRRJ02",REGIONAL:"RJ/ES",TOTAL:1349,MATCH:880,UPGRADE:51,DOWNGRADE:139,MATCH_PCT:65.23,UPGRADE_PCT:3.78,DOWNGRADE_PCT:10.3,IMPACTO_DWN:0.3938},
+  {HUB:"MG",SIGLA:"XMG1",REGIONAL:"MG",TOTAL:1162,MATCH:470,UPGRADE:8,DOWNGRADE:17,MATCH_PCT:40.45,UPGRADE_PCT:0.69,DOWNGRADE_PCT:1.46,IMPACTO_DWN:0.0482},
+  {HUB:"SC",SIGLA:"BRXSC2",REGIONAL:"SUL",TOTAL:1156,MATCH:517,UPGRADE:26,DOWNGRADE:16,MATCH_PCT:44.72,UPGRADE_PCT:2.25,DOWNGRADE_PCT:1.38,IMPACTO_DWN:0.0453},
+  {HUB:"MAR",SIGLA:"BRXSP14",REGIONAL:"SPIO",TOTAL:1052,MATCH:488,UPGRADE:11,DOWNGRADE:23,MATCH_PCT:46.39,UPGRADE_PCT:1.05,DOWNGRADE_PCT:2.19,IMPACTO_DWN:0.0652},
+  {HUB:"MARINGA",SIGLA:"BRXPR4",REGIONAL:"SPIO",TOTAL:548,MATCH:287,UPGRADE:8,DOWNGRADE:8,MATCH_PCT:52.37,UPGRADE_PCT:1.46,DOWNGRADE_PCT:1.46,IMPACTO_DWN:0.0227},
+  {HUB:"ES",SIGLA:"BRXES1",REGIONAL:"RJ/ES",TOTAL:541,MATCH:205,UPGRADE:31,DOWNGRADE:3,MATCH_PCT:37.89,UPGRADE_PCT:5.73,DOWNGRADE_PCT:0.55,IMPACTO_DWN:0.0085},
+  {HUB:"RS",SIGLA:"BRXRS1",REGIONAL:"SUL",TOTAL:525,MATCH:269,UPGRADE:49,DOWNGRADE:19,MATCH_PCT:51.24,UPGRADE_PCT:9.33,DOWNGRADE_PCT:3.62,IMPACTO_DWN:0.0538},
+  {HUB:"BAU",SIGLA:"BRXSP7",REGIONAL:"SPIO",TOTAL:494,MATCH:242,UPGRADE:12,DOWNGRADE:8,MATCH_PCT:48.99,UPGRADE_PCT:2.43,DOWNGRADE_PCT:1.62,IMPACTO_DWN:0.0227},
+  {HUB:"GO",SIGLA:"BRXGO1",REGIONAL:"NONECO",TOTAL:487,MATCH:175,UPGRADE:24,DOWNGRADE:4,MATCH_PCT:35.93,UPGRADE_PCT:4.93,DOWNGRADE_PCT:0.82,IMPACTO_DWN:0.0113},
+  {HUB:"PPY",SIGLA:"BRXMG3",REGIONAL:"MG",TOTAL:305,MATCH:242,UPGRADE:59,DOWNGRADE:4,MATCH_PCT:79.34,UPGRADE_PCT:19.34,DOWNGRADE_PCT:1.31,IMPACTO_DWN:0.0113},
+  {HUB:"PRU",SIGLA:"BRXSP11",REGIONAL:"SPIO",TOTAL:204,MATCH:191,UPGRADE:2,DOWNGRADE:11,MATCH_PCT:93.63,UPGRADE_PCT:0.98,DOWNGRADE_PCT:5.39,IMPACTO_DWN:0.0312},
+  {HUB:"PE",SIGLA:"BRXPE1",REGIONAL:"NONECO",TOTAL:65,MATCH:45,UPGRADE:0,DOWNGRADE:20,MATCH_PCT:69.23,UPGRADE_PCT:0.0,DOWNGRADE_PCT:30.77,IMPACTO_DWN:0.0567},
+  {HUB:"UDI",SIGLA:"BRXMG2",REGIONAL:"MG",TOTAL:58,MATCH:54,UPGRADE:1,DOWNGRADE:3,MATCH_PCT:93.1,UPGRADE_PCT:1.72,DOWNGRADE_PCT:5.17,IMPACTO_DWN:0.0085},
+  {HUB:"BA",SIGLA:"BRXBA1",REGIONAL:"NONECO",TOTAL:38,MATCH:20,UPGRADE:7,DOWNGRADE:11,MATCH_PCT:52.63,UPGRADE_PCT:18.42,DOWNGRADE_PCT:28.95,IMPACTO_DWN:0.0312},
+  {HUB:"CAC",SIGLA:"BRXPR3",REGIONAL:"SUL",TOTAL:180,MATCH:180,UPGRADE:0,DOWNGRADE:0,MATCH_PCT:100.0,UPGRADE_PCT:0.0,DOWNGRADE_PCT:0.0,IMPACTO_DWN:0.0},
+  {HUB:"LON",SIGLA:"BRXPR2",REGIONAL:"SPIO",TOTAL:157,MATCH:157,UPGRADE:0,DOWNGRADE:0,MATCH_PCT:100.0,UPGRADE_PCT:0.0,DOWNGRADE_PCT:0.0,IMPACTO_DWN:0.0},
+  {HUB:"FOR",SIGLA:"BRXCE1",REGIONAL:"NONECO",TOTAL:11,MATCH:9,UPGRADE:0,DOWNGRADE:2,MATCH_PCT:81.82,UPGRADE_PCT:0.0,DOWNGRADE_PCT:18.18,IMPACTO_DWN:0.0057}
+];
+
+// ══════════════════════════════════════════════════════════════
+// ABA 5 — Aderência Perfil de Veículo
+// ══════════════════════════════════════════════════════════════
+function initAba5() {
+  // Gauge helper
+  function makeGauge(id, pct, color) {
+    new Chart(document.getElementById(id), {
+      type:'doughnut',
+      data:{datasets:[{
+        data:[pct, 100-pct],
+        backgroundColor:[color,'#F3F4F6'],
+        borderWidth:0,
+        circumference:270,
+        rotation:225
+      }]},
+      options:{responsive:true,maintainAspectRatio:true,cutout:'75%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+    });
+  }
+
+  makeGauge('c5-match',    ADH_NACIONAL.MATCH_PCT,     '#00A650');
+  makeGauge('c5-upgrade',  ADH_NACIONAL.UPGRADE_PCT,   '#3483FA');
+  makeGauge('c5-downgrade',ADH_NACIONAL.DOWNGRADE_PCT, '#F23D4F');
+
+  // ── FIX-2: gauge labels dinâmicos ──────────────────────────────
+  document.getElementById('g5-match-pct').textContent   = fmtP(ADH_NACIONAL.MATCH_PCT);
+  document.getElementById('g5-match-sub').textContent   = fmtN(ADH_NACIONAL.MATCH) + ' / ' + fmtN(ADH_NACIONAL.TOTAL);
+  document.getElementById('g5-match-real').textContent  = fmtP(ADH_NACIONAL.MATCH_PCT);
+  document.getElementById('g5-match-delta').textContent = fmtN(ADH_NACIONAL.MATCH) + ' rotas match';
+  document.getElementById('g5-upg-pct').textContent     = fmtP(ADH_NACIONAL.UPGRADE_PCT);
+  document.getElementById('g5-upg-sub').textContent     = fmtN(ADH_NACIONAL.UPGRADE) + ' / ' + fmtN(ADH_NACIONAL.TOTAL);
+  document.getElementById('g5-upg-real').textContent    = fmtP(ADH_NACIONAL.UPGRADE_PCT);
+  document.getElementById('g5-upg-delta').textContent   = fmtN(ADH_NACIONAL.UPGRADE) + ' rotas upgrade';
+  document.getElementById('g5-dwn-pct').textContent     = fmtP(ADH_NACIONAL.DOWNGRADE_PCT);
+  document.getElementById('g5-dwn-sub').textContent     = fmtN(ADH_NACIONAL.DOWNGRADE) + ' / ' + fmtN(ADH_NACIONAL.TOTAL);
+  document.getElementById('g5-dwn-real').textContent    = fmtP(ADH_NACIONAL.DOWNGRADE_PCT);
+  document.getElementById('g5-dwn-delta').textContent   = fmtN(ADH_NACIONAL.DOWNGRADE) + ' rotas downgrade';
+
+  // Chart Match% por regional
+  const regMain = BY_ADH_REGIONAL;
+  new Chart(document.getElementById('c5-reg-match'), {
+    type:'bar',
+    data:{
+      labels: regMain.map(r=>r.REGIONAL),
+      datasets:[
+        {label:'Match%',data:regMain.map(r=>r.MATCH_PCT),backgroundColor:'#00A650',borderRadius:4},
+        {label:'Upgrade%',data:regMain.map(r=>r.UPGRADE_PCT),backgroundColor:'#3483FA',borderRadius:4},
+        {label:'Downgrade%',data:regMain.map(r=>r.DOWNGRADE_PCT),backgroundColor:'#F23D4F',borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtP(ctx.parsed.y)}`}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10}},grid:{display:false}},
+        y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F3F4F6'}}
+      }
+    }
+  });
+
+  // Chart Downgrade % por regional (impacto — barras horizontais)
+  const regDwn = [...regMain].sort((a,b)=>b.DOWNGRADE_PCT-a.DOWNGRADE_PCT);
+  new Chart(document.getElementById('c5-reg-dwn'), {
+    type:'bar',
+    data:{
+      labels: regDwn.map(r=>r.REGIONAL),
+      datasets:[{
+        label:'Downgrade%',
+        data: regDwn.map(r=>r.DOWNGRADE_PCT),
+        backgroundColor: regDwn.map(r=>r.DOWNGRADE_PCT>5?'#F23D4F':r.DOWNGRADE_PCT>2?'#FF6900':'#CCCCCC'),
+        borderRadius:4
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>` Downgrade: ${fmtP(ctx.parsed.x)}`}}
+      },
+      scales:{
+        x:{max:12,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F3F4F6'}},
+        y:{ticks:{font:{size:10}},grid:{display:false}}
+      }
+    }
+  });
+
+  // Tabela por hub ordenada por impacto downgrade
+  const hubSorted = [...BY_ADH_HUB].sort((a,b)=>b.IMPACTO_DWN-a.IMPACTO_DWN);
+  document.getElementById('t5-hub').innerHTML = `
+    <thead><tr>
+      <th>#</th><th>Hub</th><th>Regional</th>
+      <th class="num">Rotas</th>
+      <th class="num">Match</th><th class="num">Match%</th>
+      <th class="num">Upgrade</th><th class="num">Upg%</th>
+      <th class="num">Downgrade</th><th class="num">Dwn%</th>
+      <th class="num">Impacto Dwn</th>
+    </tr></thead>
+    <tbody>${hubSorted.map((d,i)=>{
+      const dwn_cls = d.DOWNGRADE_PCT>5?'var(--red)':d.DOWNGRADE_PCT>2?'var(--amber)':'var(--mid)';
+      const match_cls = d.MATCH_PCT>=85?'var(--green)':d.MATCH_PCT>=70?'var(--amber)':'var(--red)';
+      return `<tr>
+        <td class="rank">${i+1}</td>
+        <td><strong>${d.HUB}</strong> <span style="font-size:9px;color:var(--ml-gray-3)">${d.SIGLA}</span></td>
+        <td><span style="font-size:9px;background:#F3F4F6;padding:1px 6px;border-radius:4px">${d.REGIONAL}</span></td>
+        <td class="num">${fmtN(d.TOTAL)}</td>
+        <td class="num">${fmtN(d.MATCH)}</td>
+        <td class="num" style="font-weight:700;color:${match_cls}">${fmtP(d.MATCH_PCT)}</td>
+        <td class="num" style="color:var(--ml-blue)">${fmtN(d.UPGRADE)}</td>
+        <td class="num" style="color:var(--ml-blue)">${fmtP(d.UPGRADE_PCT)}</td>
+        <td class="num" style="font-weight:700;color:${dwn_cls}">${fmtN(d.DOWNGRADE)}</td>
+        <td class="num" style="font-weight:700;color:${dwn_cls}">${fmtP(d.DOWNGRADE_PCT)}</td>
+        <td class="num" style="font-weight:700;color:${d.IMPACTO_DWN>0.3?'var(--red)':d.IMPACTO_DWN>0.1?'var(--amber)':'var(--mid)'}">${d.IMPACTO_DWN.toFixed(4)}%</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// GLOSSÁRIO — accordion toggle
+// ══════════════════════════════════════════════════════════════
+function toggle6(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT — Aba 1 inicializada imediatamente (tab ativa)
+// ══════════════════════════════════════════════════════════════
+initialized[0] = true;
+initAba1();
+</script>
+</body>
+</html>
