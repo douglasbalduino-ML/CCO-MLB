@@ -534,11 +534,13 @@ tbody tr.rt td{font-weight:700;font-size:12px;padding:9px 10px;color:var(--gr-dk
     </select>
   </div>
   <div class="fsep"></div>
-  <div class="fg"><label>Período</label>
-    <select id="f-sem">
-      <option>Últimas 4 semanas</option>
-      <option>Últimas 8 semanas</option>
-    </select>
+  <div class="fg" style="display:flex;align-items:center;gap:6px">
+    <label>De</label>
+    <select id="f-sem-from"></select>
+  </div>
+  <div class="fg" style="display:flex;align-items:center;gap:6px">
+    <label>Até</label>
+    <select id="f-sem-to"></select>
   </div>
 </div>
 
@@ -928,7 +930,8 @@ var D = {"meta": {"generated_at": "2026-04-09 17:43:14.967964+00:00", "max_dt_la
 var DS = null;
 var fReg = document.getElementById('f-reg');
 var fKpi = document.getElementById('f-kpi');
-var fSem = document.getElementById('f-sem');
+var fSemFrom = document.getElementById('f-sem-from');
+var fSemTo   = document.getElementById('f-sem-to');
 
 function p(v){return (+v||0).toFixed(1).replace('.',',')+"%"}
 function n(v){return (+v||0).toLocaleString('pt-BR')}
@@ -1005,6 +1008,29 @@ function fillReg(list){
   if(cur&&cur!=='Todas'&&list.indexOf(cur)>=0)fReg.value=cur;
 }
 
+/* ─── FILL WEEK RANGE SELECTS ─── */
+function fillWeekSelects(weeks){
+  var labels = weeks.map(function(w){return w.week_label;});
+  labels.sort(function(a,b){return a<b?-1:1;});
+  var curFrom = fSemFrom ? fSemFrom.value : '';
+  var curTo   = fSemTo   ? fSemTo.value   : '';
+  // default to: último semana fechada do DS.filters.week_labels
+  var defTo = DS && DS.filters && DS.filters.week_labels && DS.filters.week_labels.length
+    ? DS.filters.week_labels.slice().sort()[DS.filters.week_labels.length-1]
+    : (labels.length ? labels[labels.length-1] : '');
+  var defFrom = labels.length ? labels[0] : '';
+  if(fSemFrom){
+    fSemFrom.innerHTML='';
+    labels.forEach(function(lbl){var o=document.createElement('option');o.value=lbl;o.textContent=lbl;fSemFrom.appendChild(o);});
+    fSemFrom.value = (curFrom && labels.indexOf(curFrom)>=0) ? curFrom : defFrom;
+  }
+  if(fSemTo){
+    fSemTo.innerHTML='';
+    labels.forEach(function(lbl){var o=document.createElement('option');o.value=lbl;o.textContent=lbl;fSemTo.appendChild(o);});
+    fSemTo.value = (curTo && labels.indexOf(curTo)>=0) ? curTo : defTo;
+  }
+}
+
 /* ─── FILTER: REGIONAL ─── */
 function applyReg(){
   var v=fReg.value,all=(v==='Todas');
@@ -1038,13 +1064,20 @@ function applyKpi(){
 /* ─── FILTER: WEEK PERIOD ─── */
 function applySem(){
   if(!DS)return;
-  var last4=DS.filters.week_labels||[];
-  var m=fSem.value;
+  var from = fSemFrom ? fSemFrom.value : '';
+  var to   = fSemTo   ? fSemTo.value   : '';
+  /* filtrar linhas do tbl-weekly */
   var t=document.getElementById('tbl-weekly');
-  if(!t)return;
-  t.querySelectorAll('tbody tr').forEach(function(tr){
-    var w=tr.dataset.week;if(!w)return;
-    tr.style.display=m.indexOf('4')>=0?(last4.indexOf(w)>=0?'':'none'):'';
+  if(t){
+    t.querySelectorAll('tbody tr').forEach(function(tr){
+      var w=tr.dataset.week;if(!w)return;
+      tr.style.display=(!from||w>=from)&&(!to||w<=to)?'':'none';
+    });
+  }
+  /* esconder colunas data-week nas tabelas WR e WT */
+  document.querySelectorAll('[data-week]').forEach(function(el){
+    var w=el.dataset.week;
+    el.style.display=(!from||w>=from)&&(!to||w<=to)?'':'none';
   });
 }
 
@@ -1322,7 +1355,7 @@ function renderWT(payload){
   var labels=payload.filters.week_labels||[];
   var head=document.getElementById('wt-head');
   head.innerHTML='<th style="text-align:left">Transportadora</th>';
-  labels.forEach(function(l){head.innerHTML+='<th>'+l+'</th>'});
+  labels.forEach(function(l){head.innerHTML+='<th data-week="'+l+'">'+l+'</th>';});
   head.innerHTML+='<th class="cs">Média</th><th>Var.</th>';
 
   var b=document.getElementById('wt-body');b.innerHTML='';
@@ -1330,7 +1363,7 @@ function renderWT(payload){
     var tr=document.createElement('tr');
     if(r.transportador==='TOTAL')tr.classList.add('rt');
     var html='<td>'+r.transportador+'</td>';
-    r.weeks.forEach(function(w){html+='<td>'+p(w.value)+'</td>'});
+    r.weeks.forEach(function(w,i){var l=labels[i]||'';html+='<td data-week="'+l+'">'+p(w.value)+'</td>';});
     html+='<td class="cs" style="font-weight:700">'+p(r.avg)+'</td>';
     html+='<td class="'+dc(r.variation)+'">'+d(r.variation)+'</td>';
     tr.innerHTML=html;b.appendChild(tr);
@@ -1345,7 +1378,7 @@ function renderWR(payload){
   function buildHead(headId){
     var h=document.getElementById(headId);
     h.innerHTML='<th style="text-align:left">Regional</th>';
-    labels.forEach(function(l){h.innerHTML+='<th>'+l+'</th>'});
+    labels.forEach(function(l){h.innerHTML+='<th data-week="'+l+'">'+l+'</th>';});
     h.innerHTML+='<th class="cs">Média</th><th>Var.</th>';
   }
 
@@ -1355,7 +1388,7 @@ function renderWR(payload){
       var tr=document.createElement('tr');tr.dataset.regional=r.regional;
       if(r.regional==='TOTAL')tr.classList.add('rt');
       var html='<td>'+r.regional+'</td>';
-      r.weeks.forEach(function(w){html+='<td>'+p(w.value)+'</td>'});
+      r.weeks.forEach(function(w,i){var l=labels[i]||'';html+='<td data-week="'+l+'">'+p(w.value)+'</td>';});
       html+='<td class="cs" style="font-weight:700">'+p(r.avg)+'</td>';
       html+='<td class="'+dc(r.variation)+'">'+d(r.variation)+'</td>';
       tr.innerHTML=html;b.appendChild(tr);
@@ -1627,6 +1660,7 @@ function renderPlacaPlaca(payload){
 function render(payload){
   DS=payload;
   fillReg(payload.filters.regional||[]);
+  fillWeekSelects(payload.weekly||[]);
   renderHeroes(payload);
   renderHeroTrendBars(payload);
   renderHeroRanking(payload);
@@ -1646,7 +1680,8 @@ function render(payload){
 /* ─── EVENTS ─── */
 fReg.addEventListener('change',applyReg);
 fKpi.addEventListener('change',applyKpi);
-fSem.addEventListener('change',applySem);
+if(fSemFrom) fSemFrom.addEventListener('change',applySem);
+if(fSemTo)   fSemTo.addEventListener('change',applySem);
 
 /* ─── LOAD (mock → trocar por fetch('/api/frota-fixa') em prod) ─── */
 setTimeout(function(){render(D)},300);
