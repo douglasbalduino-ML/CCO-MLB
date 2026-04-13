@@ -149,6 +149,7 @@ body{
 .filter-label{font-size:11px;color:var(--mid);font-weight:500}
 .filter-value{font-size:11px;color:var(--text);font-weight:600}
 .filter-caret{font-size:8px;color:var(--light)}
+.filter-select{font-size:11px;font-weight:600;color:var(--text);border:none;background:transparent;cursor:pointer;padding:0;outline:none}
 .filter-sep{width:1px;height:20px;background:var(--border)}
 
 .kpi-row{
@@ -410,6 +411,16 @@ tr:hover td{background:var(--row-hover)}
   <!-- ROW 2: Volumes — dinâmico de NATIONAL — preenchido por initAba1() -->
   <div id="kpi-row-vol" class="kpi-row"></div>
 
+  <!-- FILTER BAR ABA 1 -->
+  <div class="filter-bar" style="margin-top:10px;margin-bottom:4px">
+    <span class="filter-label">Regional:</span>
+    <select id="f1-regional" class="filter-select" onchange="refilterAba1()">
+      <option value="">Todas</option>
+    </select>
+    <div class="filter-sep"></div>
+    <span style="font-size:10px;color:var(--light)">D-1 · <span id="f1-date">—</span></span>
+  </div>
+
   <!-- CHARTS -->
   <div class="charts-grid" style="margin-top:16px">
     <div class="chart-card">
@@ -458,6 +469,17 @@ tr:hover td{background:var(--row-hover)}
 <main class="content">
 
   <div class="status-bar">Jan/2025 – Dez/2025 · Dados reais BQ · DM_SHP_XD_PICKUP · XD_DROP_OFF + CROSS_DOCKING · MLB</div>
+
+  <!-- FILTER BAR ABA 2 — Período mensal -->
+  <div class="filter-bar" style="margin-bottom:8px">
+    <span class="filter-label">De:</span>
+    <select id="f2-from" class="filter-select" onchange="refilterAba2()"></select>
+    <div class="filter-sep"></div>
+    <span class="filter-label">Até:</span>
+    <select id="f2-to" class="filter-select" onchange="refilterAba2()"></select>
+    <div class="filter-sep"></div>
+    <button onclick="document.getElementById('f2-from').selectedIndex=0;document.getElementById('f2-to').selectedIndex=document.getElementById('f2-to').options.length-1;refilterAba2()" style="font-size:10px;color:var(--mid);background:none;border:none;cursor:pointer;padding:0">Limpar</button>
+  </div>
 
   <!-- Linha 1: Pickup Success -->
   <div style="display:grid;grid-template-columns:220px 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
@@ -1042,6 +1064,10 @@ const NATIONAL = {
   PCT_CULP_MELI:      2.9,
   PCT_CULP_SELLER:    4.0,
   PCT_CULP_PLACE:     0.5,
+  // Campos não presentes no latest.json — fallback 0 (tiles Aba1)
+  PU_LATE:            0,
+  PU_OFFLINE:         0,
+  PCT_PU_OFFLINE:     0.00,
   // Aliases para charts existentes
   NO_PICKUP:          188126,
   DENOMINADOR:        2528380,
@@ -1361,7 +1387,105 @@ function initAba1() {
         </td>
       </tr>`;
   });
+
+  // Popular dropdown Regional + badge de data
+  const _regSel = document.getElementById('f1-regional');
+  const _regDate = document.getElementById('f1-date');
+  if (_regDate) _regDate.textContent = NATIONAL.DATA_MAX;
+  if (_regSel && _regSel.options.length <= 1) {
+    const _regs = [...new Set(BY_FACILITY.filter(r=>r.REGIONAL).map(r=>r.REGIONAL))].sort();
+    _regs.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; _regSel.appendChild(o); });
+  }
 }
+
+// ══════════════════════════════════════════════════════════════
+// refilterAba1 — re-render facility chart + table por Regional
+// ══════════════════════════════════════════════════════════════
+function refilterAba1() {
+  const sel = (document.getElementById('f1-regional')||{}).value || '';
+  const filtered = sel
+    ? BY_FACILITY.filter(r => r.REGIONAL===sel && r.FACILITY_NAME!=='SEM_FACILITY')
+    : BY_FACILITY.filter(r => r.FACILITY_NAME!=='SEM_FACILITY');
+  const facs = filtered.slice(0, 15);
+
+  Chart.getChart('c1-facility')?.destroy();
+  new Chart(document.getElementById('c1-facility'), {
+    type:'bar',
+    data:{
+      labels: facs.map(r=>`${r.FACILITY_NAME} (${r.SIGLA})`),
+      datasets:[
+        {label:'PUS %',data:facs.map(r=>r.PUS_PCT),
+         backgroundColor:facs.map(r=>pusColor(r.PUS_PCT)+'CC'),
+         borderRadius:4,borderSkipped:false},
+        {label:`Target Q2 ${TARGET_PUS.toFixed(1)}%`,
+         data:Array(facs.length).fill(TARGET_PUS),
+         type:'line',borderColor:'#3483FA',borderWidth:2,
+         borderDash:[5,4],pointRadius:0,fill:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label(ctx){
+          const v=ctx.parsed.y.toFixed(2);
+          if(ctx.datasetIndex===1) return ` Target Q2 2026: ${v}%`;
+          const hub=facs[ctx.dataIndex];
+          const vs=(hub.PUS_PCT-TARGET_PUS).toFixed(2);
+          const sign=vs>=0?'+':'';
+          return ` PUS: ${v}% (${sign}${vs}pp vs target)`;
+        }}}
+      },
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40}},
+        y:{
+          min:facs.length?Math.max(0,Math.min(...facs.map(r=>r.PUS_PCT))-5):80,
+          max:102,
+          ticks:{font:{size:10},callback:v=>v+'%'},
+          grid:{color:'#F3F4F6'}
+        }
+      }
+    }
+  });
+
+  const tdata = sel ? BY_FACILITY.filter(r=>r.REGIONAL===sel) : BY_FACILITY;
+  const tbody = document.getElementById('t1-facility');
+  tbody.innerHTML = '';
+  let rank = 1;
+  tdata.forEach(r => {
+    const isSem = r.FACILITY_NAME==='SEM_FACILITY';
+    const pct=r.PUS_PCT, otPct=r.OT_PCT;
+    const barColor=pusColor(pct), barOtColor=otColor(otPct);
+    const vsTarget=(pct-TARGET_PUS).toFixed(2);
+    const vsTargetSign=vsTarget>=0?'+':'';
+    tbody.innerHTML+=`
+      <tr>
+        <td class="rank">${isSem?'—':rank++}</td>
+        <td>
+          <span style="font-weight:700">${r.FACILITY_NAME}</span>
+          <span style="font-size:9px;color:var(--ml-gray-3);margin-left:4px">${r.SIGLA||''}</span>
+          ${r.REGIONAL?`<span style="font-size:9px;background:#F3F4F6;color:var(--mid);padding:1px 5px;border-radius:4px;margin-left:4px">${r.REGIONAL}</span>`:''}
+          ${isSem?'<span style="font-size:9px;color:var(--amber);background:var(--amber-lt);padding:1px 5px;border-radius:4px;margin-left:4px">sem mapeamento</span>':''}
+        </td>
+        <td class="num">${fmtN(r.EST)}</td>
+        <td class="num" style="color:var(--green)">${fmtN(r.COL)}</td>
+        <td class="num" style="color:${r.NP>0?'var(--red)':'var(--mid)'}">${fmtN(r.NP)}</td>
+        <td>
+          <div class="pct-bar">
+            <span style="font-weight:700;color:${barColor};min-width:44px">${pct.toFixed(2)}%</span>
+            <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
+          </div>
+          ${!isSem?`<span style="font-size:9px;color:${barColor}">${vsTargetSign}${vsTarget}pp</span>`:''}
+        </td>
+        <td>
+          <div class="pct-bar">
+            <span style="font-weight:700;color:${barOtColor};min-width:44px">${isSem?'—':otPct.toFixed(2)+'%'}</span>
+            <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${isSem?0:Math.min(otPct,100)}%;background:${barOtColor}"></div></div>
+          </div>
+        </td>
+      </tr>`;
+  });
+} // refilterAba1
 
 // ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
@@ -1532,10 +1656,90 @@ function initAba2() {
       }
     }
   });
+
+  // Popular dropdowns Mês De/Até
+  ['f2-from','f2-to'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel || sel.options.length > 0) return;
+    MONTHLY.forEach((m, i) => {
+      const p = m.MES.split('-');
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = p[1] + '/' + p[0];
+      sel.appendChild(o);
+    });
+  });
+  const _fFrom = document.getElementById('f2-from');
+  const _fTo   = document.getElementById('f2-to');
+  if (_fFrom) _fFrom.value = '0';
+  if (_fTo)   _fTo.value   = String(MONTHLY.length - 1);
 }
 
 // ══════════════════════════════════════════════════════════════
-// ABA 3 — Deep Pickup Success
+// refilterAba2 — re-render line charts por período mensal
+// ══════════════════════════════════════════════════════════════
+function refilterAba2() {
+  const fromIdx = parseInt((document.getElementById('f2-from')||{}).value ?? '0');
+  const toIdx   = parseInt((document.getElementById('f2-to')||{}).value   ?? String(MONTHLY.length-1));
+  if (isNaN(fromIdx) || isNaN(toIdx) || fromIdx > toIdx) return;
+  const slice  = MONTHLY.slice(fromIdx, toIdx + 1);
+  const labels = slice.map(m => { const p=m.MES.split('-'); return p[1]+'/'+p[0].slice(2); });
+
+  const metaLineR = (yVal, color) => ({
+    id: 'mlr'+yVal,
+    afterDraw(chart) {
+      const {ctx, chartArea, scales} = chart;
+      if (!scales.y) return;
+      const y = scales.y.getPixelForValue(yVal);
+      if (y < chartArea.top || y > chartArea.bottom) return;
+      ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle = color+'AA';
+      ctx.lineWidth=1.5; ctx.beginPath();
+      ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y);
+      ctx.stroke(); ctx.restore();
+    }
+  });
+  const dataLabelsR = {
+    id: 'dlr',
+    afterDatasetsDraw(chart) {
+      const {ctx, data} = chart;
+      data.datasets.forEach((ds, i) => {
+        chart.getDatasetMeta(i).data.forEach((pt, idx) => {
+          const v = ds.data[idx];
+          if (v == null) return;
+          ctx.save(); ctx.font='bold 8px Inter,sans-serif';
+          ctx.fillStyle=ds.borderColor; ctx.textAlign='center'; ctx.textBaseline='bottom';
+          ctx.fillText(v.toFixed(2)+'%', pt.x, pt.y-4); ctx.restore();
+        });
+      });
+    }
+  };
+  const mkLineR = (data, color, metaVal) => ({
+    type:'line',
+    data:{labels,datasets:[{
+      data,borderColor:color,backgroundColor:color+'15',
+      fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:color,
+      pointBorderColor:'#fff',pointBorderWidth:1.5,borderWidth:2
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A2E',callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(2)}%`}}},
+      scales:{
+        x:{ticks:{font:{size:8},color:'#6B7280'},grid:{color:'#F3F4F6'}},
+        y:{min:parseFloat((Math.min(...data)-1.5).toFixed(0)),max:parseFloat((Math.max(...data)+1.5).toFixed(0)),ticks:{font:{size:8},callback:v=>v+'%'},grid:{color:'#F3F4F6'}}
+      }
+    },
+    plugins:[metaVal==null?null:metaLineR(metaVal,color),dataLabelsR].filter(Boolean)
+  });
+
+  Chart.getChart('c2-pus-line')?.destroy();
+  new Chart(document.getElementById('c2-pus-line'),  mkLineR(slice.map(m=>m.PUS_PCT),'#16A34A',TARGET_PUS));
+  Chart.getChart('c2-ot-line')?.destroy();
+  new Chart(document.getElementById('c2-ot-line'),   mkLineR(slice.map(m=>m.OT_PCT), '#0EA5E9',TARGET_OT));
+  Chart.getChart('c2-np-line')?.destroy();
+  new Chart(document.getElementById('c2-np-line'),   mkLineR(slice.map(m=>m.NP_PCT), '#DC2626',TARGET_NP));
+  Chart.getChart('c2-pont-line')?.destroy();
+  new Chart(document.getElementById('c2-pont-line'), mkLineR(slice.map(m=>m.PONT_PCT),'#0D9488',null));
+}
 // ══════════════════════════════════════════════════════════════
 
 function initAba3() {
