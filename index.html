@@ -521,7 +521,7 @@ tbody tr.rt td{font-weight:700;font-size:12px;padding:9px 10px;color:var(--gr-dk
 </div>
 
 <!-- FILTERS -->
-<div class="filters">
+<div class="filters" id="main-filters" style="display:none">
   <div class="fg"><label>Regional</label>
     <select id="f-reg"><option>Todas</option></select>
   </div>
@@ -987,6 +987,9 @@ document.querySelectorAll('.tb').forEach(function(btn){
     document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on')});
     btn.classList.add('on');
     document.getElementById('pane-'+btn.dataset.tab).classList.add('on');
+    /* Mostrar barra de filtros só nas abas que usam esses filtros */
+    var mf = document.getElementById('main-filters');
+    if(mf) mf.style.display = (['regional','semanal'].indexOf(btn.dataset.tab) >= 0) ? '' : 'none';
     /* Lazy fetch placa — apenas no servidor, na primeira abertura da aba */
     if(btn.dataset.tab==='placa' && !placaLoaded && window.location.protocol!=='file:'){
       loadPlacaPlaca();
