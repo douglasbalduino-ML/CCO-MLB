@@ -809,7 +809,7 @@ tbody tr.rt td{font-weight:700;font-size:12px;padding:9px 10px;color:var(--gr-dk
   </div>
 
   <!-- KPIs mensais no topo -->
-  <div id="mes-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
+  <div id="mes-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px"></div>
 
   <div class="panel">
     <div class="ph">
@@ -949,8 +949,8 @@ function badge(id,v){
   e.innerHTML='<span class="kc-badge '+cls+'">'+sym+' '+Math.abs(x).toFixed(1).replace('.',',')+'pp</span>';
 }
 
-/* ─── PLACA A PLACA: lazy fetch (só quando rodando no servidor) ─── */
-var placaLoaded = false;
+/* ─── PLACA A PLACA: lazy fetch (só quando rodando no servidor sem dados embutidos) ─── */
+var placaLoaded = !!(D.placa_placa);
 
 function loadPlacaPlaca(regionalFilter, attempt){
   attempt = attempt || 1;
