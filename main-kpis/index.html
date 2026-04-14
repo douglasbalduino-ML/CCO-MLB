@@ -475,7 +475,7 @@ tr:hover td{background:var(--row-hover)}
   <div class="charts-grid" style="margin-top:16px">
     <div class="chart-card">
       <div class="chart-title">% Pickup Success por Hub (Top 15)</div>
-      <div class="chart-sub">CROSS_DOCKING · D-1 · 2026-04-08</div>
+      <div class="chart-sub">D-1 · Top 15 por volume</div>
       <div class="chart-wrap-260"><canvas id="c1-facility"></canvas></div>
     </div>
     <div class="chart-card">
@@ -489,7 +489,7 @@ tr:hover td{background:var(--row-hover)}
   <div class="table-card">
     <div class="table-header">
       <h3>Detalhamento por Hub (Facility)</h3>
-      <p>Ordenado por volume · D-1 · 2026-04-08 · SEM_FACILITY inclusa</p>
+      <p>Ordenado por volume estimado · D-1</p>
     </div>
     <div class="tbl-scroll">
       <table>
@@ -518,7 +518,7 @@ tr:hover td{background:var(--row-hover)}
 <div id="pane-1" class="tab-pane">
 <main class="content">
 
-  <div class="status-bar">Jan/2025 – Dez/2025 · Dados reais BQ · DM_SHP_XD_PICKUP · XD_DROP_OFF + CROSS_DOCKING · MLB</div>
+  <div class="status-bar">Série histórica · Jan – Dez 2025</div>
 
   <!-- FILTER BAR ABA 2 — Período mensal -->
   <div class="filter-bar" style="margin-bottom:8px">
@@ -614,7 +614,7 @@ tr:hover td{background:var(--row-hover)}
 <div id="pane-2" class="tab-pane">
 <main class="content">
 
-  <div class="status-bar">2026-04-08 · DM_SHP_XD_PICKUP · XD_DROP_OFF + CROSS_DOCKING · MLB</div>
+  <div class="status-bar">Deep Pickup Success · dados Tableau</div>
 
   <!-- Seção 1: Pickup Success -->
   <div class="section-label">Pickup Success</div>
@@ -694,9 +694,7 @@ tr:hover td{background:var(--row-hover)}
 <div id="pane-3" class="tab-pane">
 <main class="content">
 
-  <div class="status-bar">
-    2026-04-08 · No Pickup nacional: 188.276 envios (7,45%) · fonte: BQ validado vs Sheets LATAM 2.0
-  </div>
+  <div class="status-bar">Cubo No Pickup · D-1</div>
 
   <div class="section-label">Seção 1 — Cards de Impacto</div>
   <!-- Preenchido dinamicamente por initAba4() a partir de BY_FACILITY e BY_CARRIER -->
@@ -10872,6 +10870,33 @@ function npPill(p){const ok=p<=TARGET_NP;return `<span class="pill ${ok?'pill-gr
 
 // ══════════════════════════════════════════════════════════════
 // GLOBAL FILTERS — core engine
+// ── Mapas de display: converte códigos operacionais em nomes amigáveis ──
+const REGIONAL_DISPLAY = {
+  'SPC + MEGAS': 'SP Capital + Megas',
+  'SP2':         'SP2 (Zona Norte)',
+  'SPIO':        'SP Interior + PR',
+  'SUL':         'Sul',
+  'RJ/ES':       'RJ + ES',
+  'MG':          'MG',
+  'NONECO':      'Nordeste + CO'
+};
+const FACILITY_DISPLAY = {
+  'GRU II': 'Guarulhos II',    'GRU I':   'Guarulhos I',
+  'ARE':    'Mega Barueri',    'SBC':     'São Bernardo do Campo',
+  'ZN':     'Zona Norte SP',   'CPS':     'Campinas',
+  'RAO':    'Ribeirão Preto',  'MAR':     'Marília',
+  'BAU':    'Bauru',           'PRU':     'Presidente Prudente',
+  'ARA':    'Araçatuba',       'FRC':     'Franca',
+  'MARINGA':'Maringá',         'LON':     'Londrina',
+  'CWB':    'Curitiba',        'CAC':     'Cascavel',
+  'RS':     'Porto Alegre',    'SC':      'Florianópolis',
+  'RJ':     'Rio de Janeiro',  'ES':      'Vitória',
+  'MG':     'Belo Horizonte',  'UDI':     'Uberlândia',
+  'PPY':    'Pouso Alegre',    'BA':      'Salvador',
+  'FOR':    'Fortaleza',       'PE':      'Recife',
+  'GO':     'Goiânia'
+};
+
 // ══════════════════════════════════════════════════════════════
 function populateGlobalFilters() {
   if (!DAILY_NATIONAL.length) {
@@ -10889,7 +10914,7 @@ function populateGlobalFilters() {
 
   const regs = [...new Set(DAILY_FACILITY.map(r => r.REGIONAL).filter(Boolean))].sort();
   const regSel = el('gf-regional');
-  regs.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; regSel.appendChild(o); });
+  regs.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = REGIONAL_DISPLAY[r] || r; regSel.appendChild(o); });
 
   const cars = [...new Set(DAILY_CARRIER.map(r => r.CARRIER).filter(Boolean))].sort();
   const carSel = el('gf-carrier');
@@ -10910,7 +10935,7 @@ function rebuildFacilityOptions() {
   facSel.innerHTML = '<option value="">Todas</option>';
   const src = reg ? DAILY_FACILITY.filter(r => r.REGIONAL === reg) : DAILY_FACILITY;
   const facs = [...new Set(src.map(r => r.FACILITY_NAME).filter(Boolean))].sort();
-  facs.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; facSel.appendChild(o); });
+  facs.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = FACILITY_DISPLAY[f] || f; facSel.appendChild(o); });
   if (facs.includes(cur)) facSel.value = cur;
 }
 
