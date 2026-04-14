@@ -1,2 +1,0 @@
-# CCO-MLB
-CCO-MLB
