@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Claude Code no VSCode — Guia de Instalação</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#e8edf5;
+  --surface:#dde3ee;
+  --surface2:#d2dae8;
+  --surface3:#c7d1e2;
+  --gold:#d4a800;
+  --gold2:#b89000;
+  --text:#1a2035;
+  --text-muted:#4a5570;
+  --text-hint:#8090aa;
+  --green:#1a7d3a;
+  --green-bg:rgba(26,125,58,0.08);
+  --green-border:rgba(26,125,58,0.2);
+  --amber:#92600a;
+  --amber-bg:rgba(146,96,10,0.08);
+  --amber-border:rgba(146,96,10,0.2);
+  --blue:#1a56a0;
+  --blue-bg:rgba(26,86,160,0.08);
+  --blue-border:rgba(26,86,160,0.2);
+  --border:rgba(0,0,0,0.10);
+  --border2:rgba(0,0,0,0.16);
+  --mono:'Consolas','Courier New',monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --r:12px;
+  --r-sm:8px;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);overflow:hidden;}
+
+.screen{width:100vw;height:100vh;display:flex;flex-direction:column;}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 40px;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:var(--surface);
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-spark{font-size:17px;}
+.brand-name{font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-muted);}
+.brand-sep{width:1px;height:13px;background:var(--border2);margin:0 4px;}
+.brand-sub{font-size:12px;color:var(--text-hint);}
+.slide-counter{font-size:12px;color:var(--text-hint);font-weight:500;}
+
+.progress-track{height:2px;background:var(--border);flex-shrink:0;}
+.progress-fill{height:100%;background:var(--gold);transition:width .4s cubic-bezier(.4,0,.2,1);}
+
+.slides-wrapper{flex:1;overflow:hidden;position:relative;}
+.slides-track{display:flex;height:100%;transition:transform .5s cubic-bezier(.77,0,.18,1);}
+.slide{min-width:100vw;width:100vw;height:100%;display:flex;flex-shrink:0;}
+.slide-inner{display:flex;width:100%;height:100%;}
+
+.slide-left{
+  width:40%;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;
+  padding:48px 44px;border-right:1px solid var(--border);overflow-y:auto;
+}
+.slide-right{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:36px;background:var(--surface);overflow-y:auto;
+}
+.slide-full{
+  width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px;text-align:center;
+}
+
+.step-tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.step-num-badge{width:18px;height:18px;border-radius:50%;background:var(--gold);color:#111;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.slide-title{font-size:26px;font-weight:700;line-height:1.2;color:var(--text);margin-bottom:10px;letter-spacing:-0.02em;}
+.slide-desc{font-size:13.5px;color:var(--text-muted);line-height:1.75;margin-bottom:18px;}
+
+.callout{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;line-height:1.6;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;}
+.callout.amber{color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-border);}
+.callout.blue{color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);}
+.callout.green{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);}
+.callout-icon{flex-shrink:0;margin-top:1px;}
+
+.step-list{list-style:none;margin-top:6px;}
+.step-list li{font-size:13px;color:var(--text-muted);padding:4px 0;display:flex;gap:9px;align-items:flex-start;line-height:1.65;}
+.step-list li::before{content:'→';color:var(--gold);flex-shrink:0;margin-top:2px;font-weight:700;}
+
+a.link-btn{display:inline-flex;align-items:center;gap:6px;color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;background:rgba(180,130,0,0.10);border:1px solid rgba(180,130,0,0.25);border-radius:8px;padding:8px 14px;margin-top:4px;transition:background .2s;}
+a.link-btn:hover{background:rgba(180,130,0,0.18);}
+
+.nav-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 40px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.nav-btn{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;font-family:var(--sans);padding:9px 22px;border-radius:30px;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:transparent;color:var(--text-muted);}
+.nav-btn:hover:not(:disabled){color:var(--text);background:var(--surface3);}
+.nav-btn.primary{background:var(--gold);color:#111;border-color:var(--gold);font-weight:600;}
+.nav-btn.primary:hover:not(:disabled){background:var(--gold2);}
+.nav-btn:disabled{opacity:0.2;cursor:default;}
+.dots{display:flex;gap:5px;align-items:center;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .3s;cursor:pointer;}
+.dot.active{width:22px;border-radius:3px;background:var(--gold);}
+
+.cover-icon{font-size:52px;margin-bottom:20px;}
+.cover-title{font-size:44px;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;line-height:1.1;}
+.cover-title span{color:var(--gold);}
+.cover-sub{font-size:15px;color:var(--text-muted);margin-bottom:36px;max-width:500px;line-height:1.7;}
+.cover-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.cover-chip{font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);color:var(--text-muted);}
+
+code{font-family:var(--mono);font-size:12px;background:#080d14;border:1px solid var(--border2);border-radius:5px;padding:2px 6px;color:#e2e8f0;}
+
+.terminal{width:100%;max-width:500px;background:#080d14;border-radius:12px;border:1px solid var(--border2);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 13px;background:#0d1320;border-bottom:1px solid var(--border);}
+.t-dot{width:10px;height:10px;border-radius:50%;}
+.term-title{font-size:11.5px;color:var(--text-hint);margin-left:6px;font-family:var(--mono);}
+.term-body{padding:16px 18px;min-height:100px;}
+.t-line{font-family:var(--mono);font-size:12px;line-height:1.85;display:flex;gap:8px;align-items:flex-start;}
+.t-prompt{color:#4b5563;flex-shrink:0;}
+.t-cmd{color:#e2e8f0;}
+.t-ok{color:#4ade80;}
+.t-gold{color:var(--gold);}
+.t-cursor{display:inline-block;width:7px;height:13px;background:var(--gold);animation:blink 1s step-end infinite;vertical-align:middle;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+.desktop-wrap{width:100%;max-width:500px;border-radius:12px;overflow:hidden;border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.7);}
+.desktop-screen{background:linear-gradient(135deg,#1a1e35 0%,#0e1020 100%);padding:22px 22px 0;min-height:180px;}
+.desktop-label{font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.08em;font-weight:500;margin-bottom:14px;text-transform:uppercase;}
+
+.win-search-bar{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.9);border-radius:20px;padding:9px 16px;margin-bottom:10px;}
+.win-search-icon{flex-shrink:0;}
+.win-search-query{font-size:13px;color:#111;font-family:var(--sans);}
+.win-search-cursor-w{display:inline-block;width:1.5px;height:14px;background:#111;animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px;}
+
+.win-result{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,224,0,0.18);border-radius:8px;padding:10px 13px;animation:slideUp .4s ease .35s both;}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.win-result-name{font-size:13px;color:#e2e8f0;font-weight:500;}
+.win-result-sub{font-size:11px;color:rgba(255,255,255,0.35);margin-top:1px;}
+.win-result-badge{margin-left:auto;font-size:10px;color:var(--gold);font-weight:600;background:rgba(255,224,0,0.1);border:1px solid rgba(255,224,0,0.2);border-radius:5px;padding:2px 8px;font-family:var(--mono);white-space:nowrap;}
+.win-taskbar{height:42px;background:#0d0f1a;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;}
+.tb-icon-w{width:30px;height:30px;border-radius:6px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:15px;}
+
+.mac-desktop-wrap{width:100%;max-width:500px;border-radius:12px;overflow:hidden;border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.7);}
+.mac-desktop-bg{background:linear-gradient(135deg,#1a1e35 0%,#0e1020 100%);padding:28px 28px 20px;display:flex;flex-direction:column;align-items:center;min-height:200px;}
+.mac-label{font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:0.08em;font-weight:500;margin-bottom:18px;text-transform:uppercase;align-self:flex-start;}
+.spotlight-wrap{width:100%;max-width:360px;background:rgba(22,22,26,0.95);border-radius:14px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.8);}
+.spotlight-inp{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.spotlight-lens{font-size:15px;color:rgba(255,255,255,0.3);}
+.spotlight-text-val{font-size:17px;color:#e2e8f0;font-weight:300;}
+.spotlight-caret{display:inline-block;width:2px;height:19px;background:#fff;animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px;}
+.spotlight-res{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(255,255,255,0.04);animation:slideUp .4s ease .35s both;}
+.sp-res-icon{width:34px;height:34px;border-radius:8px;background:#0d0d0b;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sp-res-name{font-size:13px;color:#e2e8f0;font-weight:500;}
+.sp-res-sub{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px;}
+.sp-res-enter{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.3);}
+.mac-dock{height:44px;background:rgba(0,0,0,0.4);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;}
+.dock-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:17px;}
+
+/* VSCode mockup */
+.vscode-wrap{width:100%;max-width:500px;border-radius:12px;overflow:hidden;border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.7);display:flex;flex-direction:column;}
+.vscode-titlebar{height:32px;background:#323233;display:flex;align-items:center;padding:0 16px;gap:8px;border-bottom:1px solid rgba(0,0,0,0.3);}
+.vsc-dot{width:10px;height:10px;border-radius:50%;}
+.vscode-title-text{font-size:12px;color:rgba(255,255,255,0.5);margin-left:8px;font-family:var(--sans);}
+.vscode-body{display:flex;flex:1;background:#1e1e1e;min-height:280px;}
+.vscode-activity{width:44px;background:#333333;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:4px;border-right:1px solid rgba(0,0,0,0.3);}
+.vsc-icon{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0.5;cursor:pointer;}
+.vsc-icon.active{opacity:1;background:rgba(255,255,255,0.1);}
+.vscode-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.vsc-panel-header{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;}
+.vsc-panel-title{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;}
+.vsc-search{display:flex;align-items:center;gap:8px;background:#3c3c3c;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:5px 10px;margin:10px 14px;}
+.vsc-search-q{font-size:12px;color:#e2e8f0;font-family:var(--sans);}
+.vsc-cursor-ext{display:inline-block;width:1.5px;height:13px;background:#fff;animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px;}
+.vsc-ext-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background .15s;}
+.vsc-ext-item:hover{background:rgba(255,255,255,0.04);}
+.vsc-ext-item.highlight{background:rgba(180,130,0,0.08);border-left:2px solid var(--gold);}
+.vsc-ext-icon{width:36px;height:36px;border-radius:6px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.vsc-ext-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.vsc-ext-pub{font-size:11px;color:var(--text-hint);margin-bottom:3px;}
+.vsc-ext-desc{font-size:11px;color:var(--text-muted);line-height:1.5;}
+.vsc-install-btn{margin-left:auto;flex-shrink:0;font-size:11px;font-weight:700;font-family:var(--sans);padding:5px 12px;border-radius:4px;border:none;cursor:pointer;background:var(--gold);color:#111;white-space:nowrap;}
+.vsc-install-btn.installed{background:rgba(74,222,128,0.15);color:var(--green);border:1px solid var(--green-border);}
+
+/* OS choice */
+.os-choice-wrap{display:flex;gap:16px;width:100%;max-width:480px;margin-top:8px;}
+.os-choice-card{flex:1;border:1.5px solid var(--border2);border-radius:var(--r);padding:22px 18px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:10px;background:var(--surface2);}
+.os-choice-card:hover{background:var(--surface3);}
+.os-choice-card.selected{border:2px solid var(--gold);background:rgba(180,130,0,0.08);}
+.os-choice-name{font-size:15px;font-weight:600;color:var(--text);}
+.os-choice-sub{font-size:12px;color:var(--text-hint);text-align:center;}
+.os-right-wrap{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%;}
+.os-right-title{font-size:13px;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.07em;font-weight:500;}
+
+.slide{display:none;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* OS-aware VSCode chrome */
+.vsc-mac-chrome{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.vsc-win-chrome{display:flex;margin-left:auto;flex-shrink:0;}
+.vsc-win-btn{width:40px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,0.45);transition:background .15s;}
+body:not([data-os="mac"]) .vsc-mac-chrome{display:none;}
+body[data-os="mac"] .vsc-win-chrome{display:none;}
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-spark">⚡</span>
+      <span class="brand-name">Claude Code</span>
+      <span class="brand-sep"></span>
+      <span class="brand-sub">Guia de instalação — VSCode</span>
+    </div>
+    <div class="slide-counter" id="counter">1 / 8</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-track"><div class="progress-fill" id="progress" style="width:12.5%"></div></div>
+
+  <!-- SLIDES -->
+  <div class="slides-wrapper">
+    <div class="slides-track" id="track">
+
+      <!-- SLIDE 1: COVER -->
+      <div class="slide" data-os="both" data-key="cover">
+        <div class="slide-inner">
+          <div class="slide-full">
+            <div class="cover-icon">⚡</div>
+            <div class="cover-title">Claude Code <span>no VSCode</span></div>
+            <div class="cover-sub">Seu agente de IA diretamente no editor. Em menos de 10 minutos você vai estar gerando valor com superpoderes.</div>
+            <div class="cover-chips">
+              <span class="cover-chip">Claude Code</span>
+              <span class="cover-chip">VSCode</span>
+              <span class="cover-chip">MeLi AI</span>
+              <span class="cover-chip">CCO MLB</span>
+            </div>
+            <div style="margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+              <span style="font-size:12px;color:var(--text-hint);letter-spacing:0.06em;text-transform:uppercase;font-weight:500;">By <strong style="color:var(--gold);font-weight:700;">Douglas Balduino · CCO Analytics MLB</strong></span>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <a href="mailto:douglas.balduino@mercadolivre.com" target="_blank" title="Fala comigo por e-mail" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(0,0,0,0.06);border:1px solid var(--border2);transition:background .2s;text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.10)'" onmouseout="this.style.background='rgba(0,0,0,0.06)'">
+                  <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.384 5.084A2.4 2.4 0 0 0 19.2 3.6H4.8a2.4 2.4 0 0 0-2.184 1.484L12 11.66l9.384-6.576z" fill="#34A853"/>
+                    <path d="M22.8 6.804l-10.8 7.56-10.8-7.56V18a2.4 2.4 0 0 0 2.4 2.4h16.8a2.4 2.4 0 0 0 2.4-2.4V6.804z" fill="#4285F4"/>
+                    <path d="M1.2 6.804V18a2.4 2.4 0 0 0 .336 1.224L8.4 12.36 1.2 6.804z" fill="#FBBC04"/>
+                    <path d="M22.464 19.224A2.4 2.4 0 0 0 22.8 18V6.804l-7.2 5.556 6.864 6.864z" fill="#EA4335"/>
+                  </svg>
+                </a>
+              </div>
+              <span style="font-size:11px;color:var(--text-muted);">Dúvidas? Me manda mensagem no Google Chat</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: OS CHOICE -->
+      <div class="slide" data-os="both" data-key="os-choice">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">0</div>Antes de começar</div>
+            <div class="slide-title">Qual é o seu sistema operacional?</div>
+            <div class="slide-desc">Escolha o seu sistema e o guia se adapta automaticamente com os passos correspondentes.</div>
+            <div class="callout blue">
+              <span class="callout-icon">ℹ</span>
+              <span>Você pode mudar o sistema operacional a qualquer momento por aqui.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div class="os-right-wrap">
+              <div class="os-right-title">Selecione seu sistema</div>
+              <div class="os-choice-wrap">
+                <div class="os-choice-card selected" id="card-win" onclick="pickOS('win')">
+                  <svg width="40" height="40" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="88" height="88" rx="8" fill="#0078D4"/>
+                    <path d="M12 14.5L41 10.5V41.5H12V14.5Z" fill="white"/>
+                    <path d="M44 10L76 5.5V41.5H44V10Z" fill="white"/>
+                    <path d="M12 44.5H41V75.5L12 71.5V44.5Z" fill="white"/>
+                    <path d="M44 44.5H76V82.5L44 78V44.5Z" fill="white"/>
+                  </svg>
+                  <div class="os-choice-name">Windows</div>
+                  <div class="os-choice-sub">Windows 10 / 11</div>
+                </div>
+                <div class="os-choice-card" id="card-mac" onclick="pickOS('mac')">
+                  <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="8" fill="#555"/>
+                    <path d="M65.5 52.2c-.1-6.5 5.3-9.6 5.5-9.8-3-4.4-7.6-5-9.3-5.1-3.9-.4-7.7 2.3-9.7 2.3-2 0-5.1-2.2-8.4-2.2-4.3.1-8.3 2.5-10.5 6.4-4.5 7.8-1.2 19.3 3.2 25.6 2.2 3.1 4.7 6.6 8.1 6.5 3.2-.1 4.5-2.1 8.4-2.1 3.9 0 5 2.1 8.5 2 3.5-.1 5.7-3.2 7.9-6.3 2.5-3.6 3.5-7.1 3.5-7.3-.1 0-7.1-2.8-7.2-10Z" fill="white"/>
+                    <path d="M59.2 33.8c1.7-2.1 2.9-5.1 2.6-8-2.5.1-5.6 1.7-7.4 3.8-1.6 1.9-3 4.9-2.6 7.8 2.8.2 5.6-1.4 7.4-3.6Z" fill="white"/>
+                  </svg>
+                  <div class="os-choice-name">macOS</div>
+                  <div class="os-choice-sub">Apple Silicon ou Intel</div>
+                </div>
+              </div>
+              <div id="os-confirm" style="font-size:13px;color:var(--gold);font-weight:500;margin-top:4px;min-height:20px;">✓ Windows selecionado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: AZIR LICENSE -->
+      <div class="slide" data-os="both" data-key="azir">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">1</div>Pré-requisito</div>
+            <div class="slide-title">Ative sua licença no Azir</div>
+            <div class="slide-desc">Antes de instalar, você precisa solicitar a licença pelo portal interno. Leva menos de um minuto.</div>
+            <ul class="step-list">
+              <li>Acesse o Azir pelo link abaixo</li>
+              <li>Busque e solicite a licença <code>Claude Code</code></li>
+              <li>Verifique seu e-mail: chegará a confirmação de ativação</li>
+            </ul>
+            <a class="link-btn" href="https://azir.adminml.com/licenses" target="_blank">🔑 Azir → Licenças ↗</a>
+            <div class="callout amber" style="margin-top:14px;">
+              <span class="callout-icon">⚠</span>
+              <span>Sem a licença ativa, a autenticação irá falhar. Faça isso primeiro.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:480px;background:#f5f4f0;border-radius:14px;padding:20px;border:1px solid rgba(0,0,0,0.08);box-shadow:0 20px 50px rgba(0,0,0,0.6);">
+              <div style="margin-bottom:18px;">
+                <div style="font-size:11px;color:#999;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;">Minhas licenças</div>
+                <div style="display:flex;gap:12px;">
+                  <div style="flex:1;background:#fff;border-radius:10px;padding:14px;border:1px solid rgba(0,0,0,0.08);">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+                      <div style="display:flex;align-items:center;gap:9px;">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M14 2L16.2 10.2L24 8L19.5 14.8L24 21.6L16.2 19.4L14 27.6L11.8 19.4L4 21.6L8.5 14.8L4 8L11.8 10.2L14 2Z" fill="#D4380D" opacity="0.85"/>
+                        </svg>
+                        <div>
+                          <div style="font-size:12px;font-weight:600;color:#111;">Claude Chat / Cowork</div>
+                          <div style="font-size:11px;color:#999;margin-top:2px;">GenAI</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:#bbb;">Licença ativa</div>
+                  </div>
+                  <div style="flex:1;background:#fff;border-radius:10px;padding:14px;border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(255,224,0,0.1);position:relative;">
+                    <div style="position:absolute;top:-26px;right:8px;font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap;">← Esta aqui</div>
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+                      <div style="display:flex;align-items:center;gap:9px;">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M14 2L16.2 10.2L24 8L19.5 14.8L24 21.6L16.2 19.4L14 27.6L11.8 19.4L4 21.6L8.5 14.8L4 8L11.8 10.2L14 2Z" fill="#D4380D" opacity="0.85"/>
+                        </svg>
+                        <div>
+                          <div style="font-size:12px;font-weight:600;color:#111;">Claude Code</div>
+                          <div style="font-size:11px;color:#999;margin-top:2px;">GenAI</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:#bbb;">Licença a solicitar</div>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align:center;font-size:12px;color:#999;padding-top:4px;">Se não encontrar, use o buscador do Azir</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: VSCODE WINDOWS -->
+      <div class="slide" data-os="win" data-key="vscode-win">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">2</div>Windows</div>
+            <div class="slide-title">Abra o VSCode</div>
+            <div class="slide-desc">Se você já tem o VSCode instalado, pode pular para o próximo passo. Caso não tenha, baixe pelo botão abaixo.</div>
+            <ul class="step-list">
+              <li>Baixe o instalador <strong style="color:var(--text);">User Installer</strong> — não precisa de permissão de admin</li>
+              <li>Rode o instalador e finalize a instalação</li>
+              <li>Busque <code>VSCode</code> na barra do Windows e abra</li>
+            </ul>
+            <a class="link-btn" href="https://code.visualstudio.com/Download" target="_blank">⬇ Baixar VSCode ↗</a>
+            <div class="callout blue" style="margin-top:14px;">
+              <span class="callout-icon">ℹ</span>
+              <span>Escolha sempre o <strong>User Installer (64 bit)</strong> — funciona sem permissão de administrador.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div class="desktop-wrap">
+              <div class="desktop-screen">
+                <div class="desktop-label">Barra do Windows — abrindo VSCode</div>
+                <div class="win-search-bar">
+                  <svg class="win-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="6.5" cy="6.5" r="4.5" stroke="#555" stroke-width="1.5"/>
+                    <path d="M10 10L14 14" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <span class="win-search-query">vscode<span class="win-search-cursor-w"></span></span>
+                </div>
+                <div class="win-result">
+                  <div style="width:32px;height:32px;border-radius:7px;background:#0d5fa8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M74.9 7.3L48.5 32.3 27.6 15.7 7 24.8v50.4l20.6 9.1 20.9-16.6 26.4 25 19.1-9.4V16.7L74.9 7.3zM27 64.4L13 55l14-9.4v18.8zm47 .5V35.1l14 9.5-14 10.3z" fill="white"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="win-result-name">Visual Studio Code</div>
+                    <div class="win-result-sub">Aplicativo</div>
+                  </div>
+                  <div class="win-result-badge">↵ Enter</div>
+                </div>
+                <div style="height:20px;"></div>
+              </div>
+              <div class="win-taskbar">
+                <div class="tb-icon-w">🪟</div>
+                <div style="width:1px;height:18px;background:rgba(255,255,255,0.06);margin:0 3px;"></div>
+                <div class="tb-icon-w" style="background:rgba(13,95,168,0.4);box-shadow:0 0 12px rgba(13,95,168,0.5);">
+                  <svg width="18" height="18" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M74.9 7.3L48.5 32.3 27.6 15.7 7 24.8v50.4l20.6 9.1 20.9-16.6 26.4 25 19.1-9.4V16.7L74.9 7.3zM27 64.4L13 55l14-9.4v18.8zm47 .5V35.1l14 9.5-14 10.3z" fill="white"/>
+                  </svg>
+                </div>
+                <div class="tb-icon-w">📁</div>
+                <div class="tb-icon-w">🌐</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: VSCODE MAC -->
+      <div class="slide" data-os="mac" data-key="vscode-mac">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">2</div>macOS</div>
+            <div class="slide-title">Abra o VSCode</div>
+            <div class="slide-desc">Se você já tem o VSCode instalado, pode pular para o próximo passo. Caso não tenha, baixe pelo botão abaixo.</div>
+            <ul class="step-list">
+              <li>Baixe o arquivo <code>.dmg</code> e arraste o ícone para <strong style="color:var(--text);">Aplicativos</strong></li>
+              <li>Abra via <code>⌘ Cmd</code> + <code>Space</code> → digite <code>code</code></li>
+            </ul>
+            <a class="link-btn" href="https://code.visualstudio.com/Download" target="_blank">⬇ Baixar VSCode ↗</a>
+            <div class="callout blue" style="margin-top:14px;">
+              <span class="callout-icon">ℹ</span>
+              <span>Se aparecer aviso de segurança, vá em <strong>System Preferences → Security</strong> e clique em "Open Anyway".</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div class="mac-desktop-wrap">
+              <div class="mac-desktop-bg">
+                <div class="mac-label">Spotlight — abrindo VSCode</div>
+                <div class="spotlight-wrap">
+                  <div class="spotlight-inp">
+                    <span class="spotlight-lens">🔍</span>
+                    <span class="spotlight-text-val">Visual Studio Code<span class="spotlight-caret"></span></span>
+                  </div>
+                  <div class="spotlight-res">
+                    <div class="sp-res-icon" style="background:#0d5fa8;">
+                      <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M74.9 7.3L48.5 32.3 27.6 15.7 7 24.8v50.4l20.6 9.1 20.9-16.6 26.4 25 19.1-9.4V16.7L74.9 7.3zM27 64.4L13 55l14-9.4v18.8zm47 .5V35.1l14 9.5-14 10.3z" fill="white"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="sp-res-name">Visual Studio Code</div>
+                      <div class="sp-res-sub">Aplicativo · Aplicativos</div>
+                    </div>
+                    <div class="sp-res-enter">↵ Abrir</div>
+                  </div>
+                </div>
+                <div style="margin-top:11px;font-size:11px;color:rgba(255,255,255,0.18);text-align:center;">⌘ + Space para abrir o Spotlight</div>
+              </div>
+              <div class="mac-dock">
+                <div class="dock-icon">📁</div>
+                <div class="dock-icon" style="background:#0d5fa8;box-shadow:0 0 12px rgba(13,95,168,0.6);">
+                  <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M74.9 7.3L48.5 32.3 27.6 15.7 7 24.8v50.4l20.6 9.1 20.9-16.6 26.4 25 19.1-9.4V16.7L74.9 7.3zM27 64.4L13 55l14-9.4v18.8zm47 .5V35.1l14 9.5-14 10.3z" fill="white"/>
+                  </svg>
+                </div>
+                <div class="dock-icon">🌐</div>
+                <div class="dock-icon">⚙️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE: GIT + BASH — WINDOWS -->
+      <div class="slide" data-os="win" data-key="git-win">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">3</div>Windows · Git &amp; Bash</div>
+            <div class="slide-title">Configure Git e o terminal Bash</div>
+            <div class="slide-desc">Cole o script abaixo no terminal do VSCode (<code>Ctrl+`</code>). Ele instala Git, gera sua chave SSH e configura o Git Bash como terminal padrão.</div>
+            <ul class="step-list">
+              <li>Abra o terminal do VSCode: <code>Ctrl+`</code></li>
+              <li>Substitua <code>SEU_NOME</code> e <code>seu.ldap</code> e cole o script completo</li>
+              <li>Ao final, o terminal imprime sua <strong style="color:var(--gold);">chave pública SSH</strong> — copie ela</li>
+              <li>Acesse <code>github.com → Settings → SSH Keys → New SSH Key</code> e cole</li>
+              <li>Feche e reabra o VSCode — o terminal agora é Git Bash ✓</li>
+            </ul>
+            <div class="callout amber" style="margin-top:10px;">
+              <span class="callout-icon">⚠</span>
+              <span>Após o <code>winget install Git</code>, <strong>feche e reabra o terminal</strong> antes de continuar — o PATH precisa ser recarregado.</span>
+            </div>
+            <a class="link-btn" href="./erros-comuns.html" target="_blank" style="margin-top:10px;">📋 Erros comuns → Docs ↗</a>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:510px;display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#080d14;border:1px solid rgba(255,200,0,0.25);border-radius:10px;padding:14px 16px;">
+                <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:10px;">Script — Cole tudo de uma vez</div>
+                <pre style="font-family:var(--mono);font-size:11px;color:#c8d0e0;line-height:1.75;margin:0;white-space:pre-wrap;word-break:break-all;"><span style="color:#6a9fd8;"># 1. Instalar Git</span>
+winget install --id Git.Git -e --source winget
+
+<span style="color:#6a9fd8;"># 2. Config — substitua os valores</span>
+git config --global user.name <span style="color:#98c379;">"SEU_NOME"</span>
+git config --global user.email <span style="color:#98c379;">"seu.ldap@mercadolivre.com"</span>
+
+<span style="color:#6a9fd8;"># 3. Gerar chave SSH</span>
+ssh-keygen -t ed25519 -C <span style="color:#98c379;">"seu.ldap@mercadolivre.com"</span> `
+  -f "$env:USERPROFILE\.ssh\id_ed25519" -N <span style="color:#98c379;">""</span>
+
+<span style="color:#6a9fd8;"># 4. Ativar ssh-agent e adicionar chave</span>
+Get-Service ssh-agent | Set-Service -StartupType Automatic
+Start-Service ssh-agent
+ssh-add "$env:USERPROFILE\.ssh\id_ed25519"
+
+<span style="color:#6a9fd8;"># 5. Imprimir chave pública (copie abaixo)</span>
+Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"
+
+<span style="color:#6a9fd8;"># 6. Configurar Git Bash como terminal do VSCode</span>
+$s = "$env:APPDATA\Code\User\settings.json"
+$j = if (Test-Path $s) { Get-Content $s | ConvertFrom-Json } else { [PSCustomObject]@{} }
+$j | Add-Member -Force NoteProperty <span style="color:#98c379;">"terminal.integrated.defaultProfile.windows"</span> <span style="color:#98c379;">"Git Bash"</span>
+$j | ConvertTo-Json -Depth 10 | Set-Content $s
+Write-Host <span style="color:#98c379;">"Git Bash configurado!"</span> -ForegroundColor Green</pre>
+              </div>
+              <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:18px;flex-shrink:0;">🔑</span>
+                <div>
+                  <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;">Após o script: adicione a chave no GitHub</div>
+                  <div style="font-size:11px;color:var(--text-muted);line-height:1.6;"><code>github.com</code> → avatar → <strong>Settings</strong> → <strong>SSH and GPG keys</strong> → <strong>New SSH key</strong> → cole a chave impressa no terminal</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: INSTALL EXTENSION -->
+      <div class="slide" data-os="both" data-key="extensao">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">3</div>Extensão</div>
+            <div class="slide-title">Instale a extensão Claude Code</div>
+            <div class="slide-desc">Dentro do VSCode, vá na aba de extensões e busque por Claude Code. A instalação é com um clique.</div>
+            <ul class="step-list">
+              <li>Pressione <code>Ctrl+Shift+X</code> (Win) ou <code>⌘+Shift+X</code> (Mac) para abrir extensões</li>
+              <li>Digite <code>Claude Code</code> na busca</li>
+              <li>Selecione a extensão da <strong style="color:var(--text);">Anthropic</strong> (publisher verificado)</li>
+              <li>Clique em <strong style="color:var(--gold);">Install</strong> e aguarde (~30 segundos)</li>
+            </ul>
+            <div class="callout blue" style="margin-top:8px;">
+              <span class="callout-icon">ℹ</span>
+              <span>Não precisa de permissão de admin. A extensão instala na pasta de usuário.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div class="vscode-wrap">
+              <div class="vscode-titlebar" style="padding:0 0 0 12px;">
+                <div class="vsc-mac-chrome">
+                  <div class="vsc-dot" style="background:#ff5f57;"></div>
+                  <div class="vsc-dot" style="background:#febc2e;"></div>
+                  <div class="vsc-dot" style="background:#28c840;"></div>
+                </div>
+                <div class="vscode-title-text" style="flex:1;margin:0 8px;">Extensions — Visual Studio Code</div>
+                <div class="vsc-win-chrome">
+                  <div class="vsc-win-btn">─</div>
+                  <div class="vsc-win-btn">⬜</div>
+                  <div class="vsc-win-btn">✕</div>
+                </div>
+              </div>
+              <div class="vscode-body">
+                <div class="vscode-activity">
+                  <div class="vsc-icon">📄</div>
+                  <div class="vsc-icon">🔍</div>
+                  <div class="vsc-icon">🔀</div>
+                  <div class="vsc-icon active" style="color:var(--gold);">⊞</div>
+                  <div class="vsc-icon">🐛</div>
+                </div>
+                <div class="vscode-panel">
+                  <div class="vsc-panel-header">
+                    <span class="vsc-panel-title">Extensions</span>
+                    <span style="font-size:11px;color:var(--text-hint);">Ctrl+Shift+X</span>
+                  </div>
+                  <div class="vsc-search">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="opacity:0.4;">
+                      <circle cx="6.5" cy="6.5" r="4.5" stroke="#fff" stroke-width="1.5"/>
+                      <path d="M10 10L14 14" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span class="vsc-search-q">Claude Code<span class="vsc-cursor-ext"></span></span>
+                  </div>
+                  <div class="vsc-ext-item highlight" style="animation:slideUp .4s ease .3s both;">
+                    <div class="vsc-ext-icon">⚡</div>
+                    <div style="flex:1;min-width:0;">
+                      <div class="vsc-ext-name">Claude Code</div>
+                      <div class="vsc-ext-pub">Anthropic ✓</div>
+                      <div class="vsc-ext-desc">AI coding assistant with full codebase context</div>
+                    </div>
+                    <button class="vsc-install-btn">Install</button>
+                  </div>
+                  <div class="vsc-ext-item" style="animation:slideUp .4s ease .5s both;opacity:0.5;">
+                    <div class="vsc-ext-icon" style="font-size:16px;">🤖</div>
+                    <div style="flex:1;min-width:0;">
+                      <div class="vsc-ext-name">Claude AI Helper</div>
+                      <div class="vsc-ext-pub">terceiro</div>
+                      <div class="vsc-ext-desc">Unofficial Claude integration</div>
+                    </div>
+                    <button class="vsc-install-btn" style="background:var(--surface3);color:var(--text-muted);border:1px solid var(--border2);">Install</button>
+                  </div>
+                  <div style="padding:10px 14px;font-size:11px;color:var(--text-hint);text-align:center;animation:slideUp .4s ease .7s both;">⚠ Use sempre a extensão oficial da <strong style="color:var(--gold);">Anthropic</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 7: AUTHENTICATION -->
+      <div class="slide" data-os="both" data-key="auth">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">4</div>Autenticação</div>
+            <div class="slide-title">Primeira vez: autenticar</div>
+            <div class="slide-desc">Após instalar a extensão, um ícone Claude aparece na barra lateral. Clique nele para iniciar a autenticação.</div>
+            <ul class="step-list">
+              <li>Clique no ícone <strong style="color:var(--text);">Claude</strong> na barra lateral esquerda do VSCode</li>
+              <li>Clique em <strong style="color:var(--gold);">"Sign in with Anthropic Console"</strong></li>
+              <li>O browser abre automaticamente — faça login <strong>somente</strong> com <strong style="color:var(--gold);">@mercadolivre.com</strong> via SSO (não use @gmail.com nem @hotmail.com)</li>
+              <li>Autorize o VSCode e aceite os termos</li>
+              <li>Volte ao VSCode — você verá o chat do Claude pronto para uso</li>
+            </ul>
+            <div class="callout amber" style="margin-top:14px;">
+              <span class="callout-icon">⚠</span>
+              <span><strong>Obrigatório:</strong> use <strong>seuldap@mercadolivre.com</strong> — contas @gmail.com, @mercadopago.com e @hotmail.com <strong>não funcionam</strong> para autenticação via SSO Meli.</span>
+            </div>
+            <div style="margin-top:12px;padding:14px;background:rgba(180,130,0,0.08);border:1px solid rgba(180,130,0,0.22);border-radius:var(--r-sm);">
+              <div style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:4px;">✓ Você sabe que funcionou quando...</div>
+              <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">O painel lateral mostra <code>Welcome, [seu nome]</code> e um campo de chat habilitado.</div>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:460px;display:flex;flex-direction:column;gap:12px;">
+              <div class="vscode-wrap">
+                <div class="vscode-titlebar" style="padding:0 0 0 12px;">
+                  <div class="vsc-mac-chrome">
+                    <div class="vsc-dot" style="background:#ff5f57;"></div>
+                    <div class="vsc-dot" style="background:#febc2e;"></div>
+                    <div class="vsc-dot" style="background:#28c840;"></div>
+                  </div>
+                  <div class="vscode-title-text" style="flex:1;margin:0 8px;">Claude Code — Primeira execução</div>
+                  <div class="vsc-win-chrome">
+                    <div class="vsc-win-btn">─</div>
+                    <div class="vsc-win-btn">⬜</div>
+                    <div class="vsc-win-btn">✕</div>
+                  </div>
+                </div>
+                <div class="vscode-body" style="min-height:180px;">
+                  <div class="vscode-activity">
+                    <div class="vsc-icon">📄</div>
+                    <div class="vsc-icon">🔍</div>
+                    <div class="vsc-icon active" style="color:var(--gold);font-size:18px;">⚡</div>
+                    <div class="vsc-icon">⊞</div>
+                  </div>
+                  <div class="vscode-panel" style="padding:16px;">
+                    <div style="font-size:11px;color:var(--text-hint);margin-bottom:10px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600;">Claude Code</div>
+                    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Faça login para começar a usar o Claude Code no seu editor.</div>
+                    <button style="width:100%;padding:10px;background:var(--gold);color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);animation:slideUp .4s ease .5s both;">Sign in with Anthropic Console</button>
+                    <div style="font-size:11px;color:var(--amber);text-align:center;margin-top:8px;font-weight:600;animation:slideUp .4s ease .7s both;">⚠ Obrigatório: @mercadolivre.com via SSO</div>
+                    <div style="margin-top:14px;padding:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;animation:slideUp .4s ease 1.2s both;">
+                      <div style="font-size:12px;color:var(--green);font-weight:600;">✓ Autenticado com sucesso</div>
+                      <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Welcome, Douglas! Pronto para usar.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE: GOOGLE / GCLOUD — WINDOWS -->
+      <div class="slide" data-os="win" data-key="gcloud-win">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">5</div>Windows · Google</div>
+            <div class="slide-title">Configure o acesso Google</div>
+            <div class="slide-desc">Para o Claude acessar Gmail, Google Sheets e BigQuery, autentique a CLI do Google direto pelo terminal do VSCode.</div>
+            <ul class="step-list">
+              <li>Abra o terminal: <code>Ctrl+`</code> (acento grave)</li>
+              <li>Se não tiver a CLI, rode no terminal: <code>winget install --id Google.CloudSDK -e</code></li>
+              <li>Execute <code>gcloud auth login</code> — abre o browser, faça login com <strong style="color:var(--gold);">@mercadolibre.com</strong></li>
+              <li>Execute <code>gcloud auth application-default login</code> — mesmos passos</li>
+              <li>Gmail, Sheets e BQ ficam acessíveis ao Claude ✓</li>
+            </ul>
+            <div class="callout blue" style="margin-top:10px;">
+              <span class="callout-icon">ℹ</span>
+              <span>O <code>application-default login</code> é necessário para que o Claude (e bibliotecas Python) acessem o BigQuery automaticamente.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:500px;display:flex;flex-direction:column;gap:12px;">
+              <div class="terminal">
+                <div class="term-bar">
+                  <div class="t-dot" style="background:#ff5f57;"></div>
+                  <div class="t-dot" style="background:#febc2e;"></div>
+                  <div class="t-dot" style="background:#28c840;"></div>
+                  <div class="term-title">PowerShell — Terminal VSCode (Ctrl+`)</div>
+                </div>
+                <div class="term-body">
+                  <div class="t-line"><span class="t-prompt">PS></span><span class="t-cmd"> winget install --id Google.CloudSDK -e</span></div>
+                  <div class="t-line" style="margin-top:2px;animation:slideUp .3s ease .3s both;"><span class="t-ok">Successfully installed Google Cloud SDK</span></div>
+                  <div class="t-line" style="margin-top:8px;animation:slideUp .3s ease .6s both;"><span class="t-prompt">PS></span><span class="t-cmd"> gcloud auth login</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 1s both;"><span class="t-ok">Opening browser for authorization...</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 1.3s both;"><span class="t-gold">You are now logged in as [seu@mercadolibre.com]</span></div>
+                  <div class="t-line" style="margin-top:8px;animation:slideUp .3s ease 1.6s both;"><span class="t-prompt">PS></span><span class="t-cmd"> gcloud auth application-default login</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 2s both;"><span class="t-gold">Credentials saved to AppData\gcloud\application_default_credentials.json</span></div>
+                  <div class="t-line" style="margin-top:4px;animation:slideUp .3s ease 2.3s both;"><span class="t-prompt">PS></span><span class="t-cmd"> </span><div class="t-cursor"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE: GOOGLE / GCLOUD — MAC -->
+      <div class="slide" data-os="mac" data-key="gcloud-mac">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">5</div>macOS · Google</div>
+            <div class="slide-title">Configure o acesso Google</div>
+            <div class="slide-desc">Para o Claude acessar Gmail, Google Sheets e BigQuery, autentique a CLI do Google direto pelo terminal do VSCode.</div>
+            <ul class="step-list">
+              <li>Abra o terminal: <code>Ctrl+`</code> (acento grave)</li>
+              <li>Se não tiver a CLI: <code>brew install --cask google-cloud-sdk</code></li>
+              <li>Execute <code>gcloud auth login</code> — abre o browser, faça login com <strong style="color:var(--gold);">@mercadolibre.com</strong></li>
+              <li>Execute <code>gcloud auth application-default login</code> — mesmos passos</li>
+              <li>Gmail, Sheets e BQ ficam acessíveis ao Claude ✓</li>
+            </ul>
+            <div class="callout blue" style="margin-top:10px;">
+              <span class="callout-icon">ℹ</span>
+              <span>O <code>application-default login</code> é necessário para que o Claude (e bibliotecas Python) acessem o BigQuery automaticamente.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:500px;display:flex;flex-direction:column;gap:12px;">
+              <div class="terminal">
+                <div class="term-bar">
+                  <div class="t-dot" style="background:#ff5f57;"></div>
+                  <div class="t-dot" style="background:#febc2e;"></div>
+                  <div class="t-dot" style="background:#28c840;"></div>
+                  <div class="term-title">Terminal — VSCode (Ctrl+`)</div>
+                </div>
+                <div class="term-body">
+                  <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> brew install --cask google-cloud-sdk</span></div>
+                  <div class="t-line" style="margin-top:2px;animation:slideUp .3s ease .3s both;"><span class="t-ok">google-cloud-sdk was successfully installed!</span></div>
+                  <div class="t-line" style="margin-top:8px;animation:slideUp .3s ease .6s both;"><span class="t-prompt">$</span><span class="t-cmd"> gcloud auth login</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 1s both;"><span class="t-ok">Opening browser for authorization...</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 1.3s both;"><span class="t-gold">You are now logged in as [seu@mercadolibre.com]</span></div>
+                  <div class="t-line" style="margin-top:8px;animation:slideUp .3s ease 1.6s both;"><span class="t-prompt">$</span><span class="t-cmd"> gcloud auth application-default login</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 2s both;"><span class="t-gold">Credentials saved to ~/.config/gcloud/application_default_credentials.json</span></div>
+                  <div class="t-line" style="margin-top:4px;animation:slideUp .3s ease 2.3s both;"><span class="t-prompt">$</span><span class="t-cmd"> </span><div class="t-cursor"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE: TABLEAU PAT -->
+      <div class="slide" data-os="both" data-key="tableau">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">6</div>Tableau</div>
+            <div class="slide-title">Configure o token do Tableau</div>
+            <div class="slide-desc">Para o Claude acessar dashboards e extracts do Tableau, gere um Personal Access Token (PAT) e envie para o Claude no chat.</div>
+            <ul class="step-list">
+              <li>Acesse <code>us-east-1.online.tableau.com</code> e faça login</li>
+              <li>Clique nas suas iniciais no <strong style="color:var(--text);">canto superior direito</strong></li>
+              <li>Selecione <strong style="color:var(--gold);">Configurações da Minha Conta</strong></li>
+              <li>Localize o campo <strong style="color:var(--text);">Tokens de Acesso Pessoal</strong></li>
+              <li>Atribua um nome (ex: <code>Claude</code>) e clique em <strong style="color:var(--gold);">Gerar token</strong></li>
+              <li>Copie o token e <strong style="color:var(--text);">envie o nome + token no chat do Claude</strong> — ele faz a configuração</li>
+            </ul>
+            <div class="callout amber" style="margin-top:10px;">
+              <span class="callout-icon">⚠</span>
+              <span>O token é exibido <strong>apenas uma vez</strong>. Copie antes de fechar a janela.</span>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:500px;background:#1a1a2e;border-radius:12px;border:1px solid var(--border2);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+              <div style="background:#2d2d2d;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,0.3);">
+                <div style="display:flex;gap:5px;">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
+                </div>
+                <div style="flex:1;background:#1a1a1a;border-radius:4px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,0.35);font-family:var(--mono);">us-east-1.online.tableau.com/#/site/melishipping</div>
+              </div>
+              <div style="background:#ffffff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e0e0;">
+                <div style="font-size:12px;font-weight:700;color:#1a1a2e;">MELI-SHIPPING</div>
+                <div style="position:relative;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#0070d8;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;box-shadow:0 0 0 3px rgba(255,224,0,0.5);">DB</div>
+                  <div style="position:absolute;right:0;top:38px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,0.15);min-width:210px;z-index:10;animation:slideUp .3s ease .3s both;">
+                    <div style="padding:8px 14px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">Espaço pessoal</div>
+                    <div style="padding:8px 14px;font-size:12px;color:#666;border-bottom:1px solid #f0f0f0;">Meu conteúdo</div>
+                    <div style="padding:8px 14px;font-size:13px;font-weight:600;color:#0070d8;background:#f0f7ff;">✓ Configurações da Minha Conta</div>
+                    <div style="padding:8px 14px;font-size:12px;color:#666;">Tornar esta minha página inicial</div>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#f8f8f8;padding:16px;">
+                <div style="font-size:11px;color:#999;letter-spacing:0.06em;text-transform:uppercase;font-weight:500;margin-bottom:10px;">Tokens de Acesso Pessoal</div>
+                <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:12px;">
+                  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                    <input style="flex:1;padding:7px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:12px;font-family:var(--sans);color:#333;background:#fff;" value="Claude" readonly/>
+                    <button style="padding:7px 16px;background:#0070d8;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--sans);white-space:nowrap;">Gerar token</button>
+                  </div>
+                  <div style="background:#f0fff4;border:1px solid #b7ebc8;border-radius:6px;padding:10px 12px;animation:slideUp .4s ease .8s both;">
+                    <div style="font-size:11px;font-weight:600;color:#1a7d3a;margin-bottom:4px;">✓ Token gerado — copie agora!</div>
+                    <div style="font-size:11px;color:#555;font-family:var(--mono);">Nome: <strong>Claude</strong><br>Token: <span style="color:#0070d8;">xxxxxxxx-xxxx-xxxx-xxxx-············</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 8: CONTEXT -->
+      <div class="slide" data-os="both" data-key="contexto">
+        <div class="slide-inner">
+          <div class="slide-left">
+            <div class="step-tag"><div class="step-num-badge">7</div>Contexto</div>
+            <div class="slide-title">Configure o arquivo de contexto</div>
+            <div class="slide-desc">Para que o Claude saiba quais tabelas usar, quais KPIs medir e como interpretar os dados do CCO FM, ele precisa de um arquivo <code>CLAUDE.md</code>.</div>
+            <ul class="step-list">
+              <li>Solicite o <code>CLAUDE.md</code> do seu time diretamente comigo</li>
+              <li>Salve na pasta raiz do workspace que você vai usar com o Claude</li>
+              <li>O Claude lê esse arquivo automaticamente em toda nova sessão</li>
+              <li>Use <code>Ctrl+L</code> para abrir o chat e começar a conversar</li>
+            </ul>
+            <div class="callout green" style="margin-top:10px;">
+              <span class="callout-icon">✓</span>
+              <span>Com o contexto correto, o Claude já sabe das suas tabelas BigQuery e KPIs sem precisar explicar toda vez.</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <a class="link-btn" href="LINK_DRIVE_AQUI" target="_blank">📁 CLAUDE.md no Drive ↗</a>
+              <a class="link-btn" href="LINK_GITHUB_AQUI" target="_blank">🐙 GitHub do workspace ↗</a>
+            </div>
+          </div>
+          <div class="slide-right">
+            <div style="width:100%;max-width:500px;">
+              <div style="background:#080d14;border:1px solid rgba(255,224,0,0.2);border-radius:12px;padding:18px 20px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                  <div style="width:40px;height:40px;border-radius:9px;background:rgba(255,224,0,0.08);border:1px solid rgba(255,224,0,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📄</div>
+                  <div>
+                    <div style="font-size:14px;font-weight:600;color:var(--gold);">CLAUDE.md</div>
+                    <div style="font-size:11px;color:var(--text-hint);margin-top:2px;">Arquivo de contexto · CCO Analytics MLB</div>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,0.05);border-radius:6px;">
+                    <span style="font-size:11px;color:var(--gold);font-weight:600;min-width:70px;font-family:var(--mono);">TABELAS</span>
+                    <span style="font-size:11px;color:var(--text-muted);">Serão configuradas com as tabelas do seu time</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,0.05);border-radius:6px;">
+                    <span style="font-size:11px;color:var(--gold);font-weight:600;min-width:70px;font-family:var(--mono);">KPIs</span>
+                    <span style="font-size:11px;color:var(--text-muted);">Métricas e indicadores definidos pelo seu time</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,0.05);border-radius:6px;">
+                    <span style="font-size:11px;color:var(--gold);font-weight:600;min-width:70px;font-family:var(--mono);">ESCOPO</span>
+                    <span style="font-size:11px;color:var(--text-muted);">MLB (Brasil completo) · GMT-4 · BigQuery</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,0.05);border-radius:6px;">
+                    <span style="font-size:11px;color:var(--gold);font-weight:600;min-width:70px;font-family:var(--mono);">SKILLS</span>
+                    <span style="font-size:11px;color:var(--text-muted);">Commands e atalhos definidos pelo seu time</span>
+                  </div>
+                </div>
+              </div>
+              <div class="terminal">
+                <div class="term-bar">
+                  <div class="t-dot" style="background:#ff5f57;"></div>
+                  <div class="t-dot" style="background:#febc2e;"></div>
+                  <div class="t-dot" style="background:#28c840;"></div>
+                  <div class="term-title">Claude Code — com contexto CCO MLB</div>
+                </div>
+                <div class="term-body" style="min-height:90px;">
+                  <div class="t-line"><span class="t-prompt">></span><span class="t-cmd"> Qual a performance de ontem vs meta?</span></div>
+                  <div class="t-line" style="margin-top:4px;animation:slideUp .3s ease .5s both;"><span class="t-ok">Consultando tabelas do time...</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease .9s both;"><span class="t-gold">Resultado D-1: 94,2% vs meta 95% (−0,8pp)</span></div>
+                  <div class="t-line" style="animation:slideUp .3s ease 1.2s both;"><span class="t-prompt">></span><span class="t-cmd"> </span><div class="t-cursor"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 9: CLOSING -->
+      <div class="slide" data-os="both" data-key="cierre">
+        <div class="slide-inner">
+          <div class="slide-full" style="position:relative;overflow:hidden;">
+            <div style="position:absolute;width:600px;height:600px;border-radius:50%;border:1px solid rgba(180,130,0,0.15);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></div>
+            <div style="position:absolute;width:420px;height:420px;border-radius:50%;border:1px solid rgba(180,130,0,0.20);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></div>
+            <div style="position:absolute;width:240px;height:240px;border-radius:50%;border:1px solid rgba(180,130,0,0.28);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></div>
+            <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;">
+              <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,224,0,0.1);border:1px solid rgba(255,224,0,0.25);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:28px;">⚡</div>
+              <div style="font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Instalação completa</div>
+              <div style="font-size:38px;font-weight:700;letter-spacing:-0.03em;line-height:1.15;max-width:640px;margin-bottom:20px;">
+                Você tem tudo que precisa para <span style="color:var(--gold);">trabalhar com IA.</span>
+              </div>
+              <div style="font-size:15px;color:var(--text-muted);line-height:1.75;max-width:520px;margin-bottom:44px;">
+                O Claude Code está no seu VSCode e pronto para te ajudar a pensar, escrever e executar mais rápido. Use <code>Ctrl+L</code> para abrir o chat e começar agora.
+              </div>
+              <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;max-width:620px;">
+                <div style="flex:1;min-width:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:20px 18px;text-align:left;">
+                  <div style="font-size:20px;margin-bottom:10px;">💬</div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;">Pergunte o que quiser</div>
+                  <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Descreva o dado ou análise que precisar e o Claude devolve uma resposta direta.</div>
+                </div>
+                <div style="flex:1;min-width:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:20px 18px;text-align:left;">
+                  <div style="font-size:20px;margin-bottom:10px;">⚡</div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;">Acelere análises complexas</div>
+                  <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Revise tendências, avalie trade-offs e gere relatórios em minutos.</div>
+                </div>
+                <div style="flex:1;min-width:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:20px 18px;text-align:left;">
+                  <div style="font-size:20px;margin-bottom:10px;">🎯</div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;">Foque em gerar valor</div>
+                  <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Delegue o repetitivo. Você coloca o critério, o Claude coloca o trabalho.</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:32px;justify-content:center;flex-wrap:wrap;">
+                <a class="link-btn" href="LINK_DRIVE_AQUI" target="_blank">📁 Materiais no Drive ↗</a>
+                <a class="link-btn" href="LINK_GITHUB_AQUI" target="_blank">🐙 GitHub do workspace ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NAV BAR -->
+  <div class="nav-bar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <span style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.03em;">Douglas Balduino · CCO Analytics MLB</span>
+        <span style="font-size:12px;color:var(--text-muted);">Dúvidas? Me manda mensagem!</span>
+      </div>
+      <a href="mailto:douglas.balduino@mercadolivre.com" target="_blank" title="Fala comigo por e-mail" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:rgba(0,0,0,0.06);border:1px solid var(--border2);transition:background .2s;text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.10)'" onmouseout="this.style.background='rgba(0,0,0,0.06)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21.384 5.084A2.4 2.4 0 0 0 19.2 3.6H4.8a2.4 2.4 0 0 0-2.184 1.484L12 11.66l9.384-6.576z" fill="#34A853"/>
+          <path d="M22.8 6.804l-10.8 7.56-10.8-7.56V18a2.4 2.4 0 0 0 2.4 2.4h16.8a2.4 2.4 0 0 0 2.4-2.4V6.804z" fill="#4285F4"/>
+          <path d="M1.2 6.804V18a2.4 2.4 0 0 0 .336 1.224L8.4 12.36 1.2 6.804z" fill="#FBBC04"/>
+          <path d="M22.464 19.224A2.4 2.4 0 0 0 22.8 18V6.804l-7.2 5.556 6.864 6.864z" fill="#EA4335"/>
+        </svg>
+      </a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>← Anterior</button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn primary" id="btn-next" onclick="go(1)">Próximo →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentOS = 'win';
+let currentSlide = 0;
+let slideList = [];
+let allSlides = [];
+
+function pickOS(os) {
+  const currentKey = slideList[currentSlide] ? slideList[currentSlide].getAttribute('data-key') : 'os-choice';
+  currentOS = os;
+  document.body.setAttribute('data-os', os);
+  document.getElementById('card-win').classList.toggle('selected', os === 'win');
+  document.getElementById('card-mac').classList.toggle('selected', os === 'mac');
+  document.getElementById('os-confirm').textContent = os === 'win' ? '✓ Windows selecionado' : '✓ macOS selecionado';
+  buildSlideList();
+  const sameIdx = slideList.findIndex(s => s.getAttribute('data-key') === currentKey);
+  currentSlide = sameIdx >= 0 ? sameIdx : 0;
+  updateUI();
+}
+
+function buildSlideList() {
+  slideList = [];
+  allSlides.forEach(el => {
+    const os = el.getAttribute('data-os');
+    if (os !== 'both' && os !== currentOS) return;
+    slideList.push(el);
+  });
+}
+
+function updateUI() {
+  const total = slideList.length;
+  const idx = currentSlide;
+  allSlides.forEach(s => { s.style.display = 'none'; });
+  slideList.forEach(s => { s.style.display = 'flex'; });
+  const track = document.getElementById('track');
+  track.style.width = total * 100 + 'vw';
+  track.style.transform = 'translateX(-' + (idx * 100) + 'vw)';
+  document.getElementById('counter').textContent = (idx + 1) + ' / ' + total;
+  document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+  document.getElementById('btn-prev').disabled = idx === 0;
+  const nb = document.getElementById('btn-next');
+  if (idx === total - 1) { nb.textContent = 'Concluído! 🎉'; nb.disabled = true; }
+  else { nb.textContent = 'Próximo →'; nb.disabled = false; }
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === idx ? ' active' : '');
+    d.onclick = (function(i){ return function(){ currentSlide = i; updateUI(); }; })(i);
+    dotsEl.appendChild(d);
+  }
+}
+
+function go(dir) {
+  currentSlide = Math.max(0, Math.min(slideList.length - 1, currentSlide + dir));
+  updateUI();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') go(1);
+  if (e.key === 'ArrowLeft') go(-1);
+});
+
+allSlides = Array.from(document.querySelectorAll('.slide'));
+document.body.setAttribute('data-os', 'win');
+buildSlideList();
+updateUI();
+</script>
+</body>
+</html>

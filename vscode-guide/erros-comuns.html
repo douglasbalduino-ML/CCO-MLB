@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Erros Comuns — Claude Code no VSCode</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#e8edf5;
+  --surface:#dde3ee;
+  --surface2:#d2dae8;
+  --surface3:#c7d1e2;
+  --gold:#d4a800;
+  --gold2:#b89000;
+  --text:#1a2035;
+  --text-muted:#4a5570;
+  --text-hint:#8090aa;
+  --green:#1a7d3a;
+  --green-bg:rgba(26,125,58,0.08);
+  --green-border:rgba(26,125,58,0.2);
+  --amber:#92600a;
+  --amber-bg:rgba(146,96,10,0.08);
+  --amber-border:rgba(146,96,10,0.2);
+  --blue:#1a56a0;
+  --blue-bg:rgba(26,86,160,0.08);
+  --blue-border:rgba(26,86,160,0.2);
+  --red:#9e1a1a;
+  --red-bg:rgba(158,26,26,0.07);
+  --red-border:rgba(158,26,26,0.18);
+  --border:rgba(0,0,0,0.10);
+  --border2:rgba(0,0,0,0.16);
+  --mono:'Consolas','Courier New',monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --r:12px;
+  --r-sm:8px;
+}
+html{font-family:var(--sans);background:var(--bg);color:var(--text);}
+body{max-width:860px;margin:0 auto;padding:0 24px 80px;}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:40px;
+  position:sticky;top:0;background:var(--bg);z-index:100;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-spark{font-size:18px;}
+.brand-name{font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-muted);}
+.brand-sep{width:1px;height:13px;background:var(--border2);margin:0 6px;}
+.brand-sub{font-size:12px;color:var(--text-hint);}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;color:var(--gold);
+  font-size:13px;font-weight:600;text-decoration:none;
+  background:rgba(180,130,0,0.10);border:1px solid rgba(180,130,0,0.25);
+  border-radius:8px;padding:7px 14px;transition:background .2s;
+}
+.back-btn:hover{background:rgba(180,130,0,0.18);}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:44px;}
+.page-tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.page-title{font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-0.02em;margin-bottom:10px;}
+.page-desc{font-size:14px;color:var(--text-muted);line-height:1.75;max-width:600px;}
+
+/* TOC */
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:44px;}
+.toc-title{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-hint);margin-bottom:12px;}
+.toc-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.toc-list li a{
+  font-size:13px;color:var(--text-muted);text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.toc-list li a:hover{color:var(--gold);}
+.toc-cat{font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+.toc-cat.git{background:rgba(26,86,160,0.1);color:var(--blue);}
+.toc-cat.auth{background:rgba(212,168,0,0.12);color:var(--gold2);}
+.toc-cat.gcloud{background:rgba(26,125,58,0.10);color:var(--green);}
+.toc-cat.vscode{background:rgba(146,96,10,0.10);color:var(--amber);}
+
+/* SECTION */
+.section{margin-bottom:52px;}
+.section-label{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+  padding:4px 11px;border-radius:6px;margin-bottom:20px;
+}
+.section-label.git{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
+.section-label.auth{background:rgba(212,168,0,0.1);color:var(--gold2);border:1px solid rgba(212,168,0,0.25);}
+.section-label.gcloud{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.section-label.vscode{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+
+/* ERROR CARD */
+.error-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;margin-bottom:16px;
+}
+.error-card-head{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:16px 20px;cursor:pointer;user-select:none;
+}
+.error-card-head:hover{background:var(--surface2);}
+.err-icon{
+  width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;margin-top:1px;
+}
+.err-icon.red{background:var(--red-bg);border:1px solid var(--red-border);}
+.err-icon.amber{background:var(--amber-bg);border:1px solid var(--amber-border);}
+.error-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.4;}
+.error-symptom{font-size:12.5px;color:var(--text-hint);line-height:1.5;}
+
+.error-body{padding:0 20px 20px 60px;display:flex;flex-direction:column;gap:10px;}
+
+/* CAUSE & FIX */
+.cause-label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-hint);margin-bottom:5px;}
+.fix-step{font-size:13px;color:var(--text-muted);line-height:1.7;display:flex;gap:9px;align-items:flex-start;}
+.fix-step::before{content:'→';color:var(--gold);flex-shrink:0;font-weight:700;margin-top:2px;}
+.fix-steps{display:flex;flex-direction:column;gap:4px;}
+
+code{
+  font-family:var(--mono);font-size:12px;
+  background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.1);
+  border-radius:4px;padding:1px 6px;color:var(--text);
+}
+.code-block{
+  font-family:var(--mono);font-size:12.5px;
+  background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.1);
+  border-radius:var(--r-sm);padding:12px 14px;color:var(--text);
+  line-height:1.7;white-space:pre-wrap;overflow-x:auto;
+  margin-top:4px;
+}
+.callout{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;line-height:1.6;border-radius:var(--r-sm);padding:11px 13px;}
+.callout.amber{color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-border);}
+.callout.blue{color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);}
+.callout.green{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);}
+.callout-icon{flex-shrink:0;}
+
+/* DIVIDER */
+hr{border:none;border-top:1px solid var(--border);margin:44px 0;}
+
+/* FOOTER */
+.footer{
+  border-top:1px solid var(--border);padding-top:24px;
+  font-size:12px;color:var(--text-hint);line-height:1.7;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-spark">⚡</span>
+    <span class="brand-name">Claude Code · VSCode</span>
+    <span class="brand-sep"></span>
+    <span class="brand-sub">Erros Comuns</span>
+  </div>
+  <a class="back-btn" href="./index.html">← Voltar ao Guia</a>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-tag">📋 Troubleshooting</div>
+  <h1 class="page-title">Erros Comuns — Guia de Instalação</h1>
+  <p class="page-desc">
+    Referência rápida para resolver os problemas mais frequentes durante a instalação do Claude Code no VSCode. Aberto para todos os colaboradores Meli.
+  </p>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">Categorias</div>
+  <ul class="toc-list">
+    <li><a href="#git"><span class="toc-cat git">Git & SSH</span>winget não encontrado · ssh-keygen · GitHub SSO authorization</a></li>
+    <li><a href="#auth"><span class="toc-cat auth">Autenticação</span>login com conta errada · extensão não instala · sign in trava</a></li>
+    <li><a href="#gcloud"><span class="toc-cat gcloud">Google Cloud</span>gcloud not found · ADC não configurado · BigQuery permission denied</a></li>
+    <li><a href="#vscode"><span class="toc-cat vscode">VSCode</span>terminal não aparece · Git Bash não listado · extensão não encontrada</a></li>
+  </ul>
+</div>
+
+
+<!-- SECTION: GIT & SSH -->
+<div class="section" id="git">
+  <div class="section-label git">🔑 Git &amp; SSH</div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">winget: comando não encontrado</div>
+        <div class="error-symptom">O terminal retorna <code>winget : O termo 'winget' não é reconhecido</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O App Installer do Windows não está atualizado. O winget exige Windows 10 ≥ 1809 e App Installer atualizado.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Abra a Microsoft Store e busque <strong>App Installer</strong> — clique em <em>Atualizar</em></div>
+        <div class="fix-step">Feche e reabra o PowerShell após a atualização</div>
+        <div class="fix-step">Alternativa: baixe o Git direto em <a href="https://git-scm.com/download/win" target="_blank" style="color:var(--gold);">git-scm.com/download/win</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">ssh-keygen: Permission denied criando a chave</div>
+        <div class="error-symptom"><code>Could not open a connection to your authentication agent</code> ou chave não aparece em <code>~/.ssh/</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O serviço <code>ssh-agent</code> do Windows precisa estar em execução antes de adicionar a chave.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Abra o PowerShell <strong>como Administrador</strong></div>
+        <div class="fix-step">Execute os comandos abaixo para ativar o serviço:</div>
+      </div>
+      <div class="code-block">Set-Service ssh-agent -StartupType Automatic
+Start-Service ssh-agent</div>
+      <div class="fix-steps">
+        <div class="fix-step">Feche e reabra o terminal normal, depois repita: <code>ssh-add ~/.ssh/id_ed25519</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">GitHub rejeita a chave SSH: "Permission denied (publickey)"</div>
+        <div class="error-symptom"><code>git@github.com: Permission denied (publickey).</code> após adicionar a chave</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa mais comum</div>
+      <p class="fix-step">A chave foi adicionada ao GitHub mas a organização Meli exige <strong>SSO Authorization</strong> para a chave SSH.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Acesse <a href="https://github.com/settings/keys" target="_blank" style="color:var(--gold);">github.com/settings/keys</a></div>
+        <div class="fix-step">Localize a chave recém-adicionada e clique em <strong>"Configure SSO"</strong></div>
+        <div class="fix-step">Clique em <strong>"Authorize"</strong> ao lado da organização <code>dbalduino_meli</code> (ou sua org Meli)</div>
+        <div class="fix-step">Teste novamente: <code>ssh -T git@github.com</code></div>
+      </div>
+      <div class="callout amber" style="margin-top:8px;">
+        <span class="callout-icon">⚠</span>
+        <span>Sem o SSO Authorization, o push/pull falha mesmo com a chave corretamente instalada no agent.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Git não encontra o repositório após clonar</div>
+        <div class="error-symptom"><code>fatal: not a git repository (or any of the parent directories)</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O terminal está fora do diretório clonado. O VSCode não mudou automaticamente de pasta.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Menu <strong>File → Open Folder</strong> e selecione a pasta do repositório clonado</div>
+        <div class="fix-step">Ou no terminal: <code>cd ~/workspace/cco-fm-workspace</code> (ajuste o caminho)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr/>
+
+<!-- SECTION: AUTENTICAÇÃO -->
+<div class="section" id="auth">
+  <div class="section-label auth">🔐 Autenticação Claude Code</div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">Login falha com conta Gmail ou Mercado Pago</div>
+        <div class="error-symptom">Página de login abre mas retorna erro ou fica em loop após autenticar</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O Claude Code usa autenticação via Anthropic Console com SSO Meli. Somente contas <strong>@mercadolivre.com</strong> são aceitas.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Feche a janela do browser e volte ao VSCode</div>
+        <div class="fix-step">Clique novamente em <strong>"Sign in with Anthropic Console"</strong></div>
+        <div class="fix-step">Na tela de login, clique em <strong>"Sign in with SSO"</strong> e informe o domínio <code>mercadolivre.com</code></div>
+        <div class="fix-step">Use <strong>seuldap@mercadolivre.com</strong> (ex: <code>psilva@mercadolivre.com</code>)</div>
+      </div>
+      <div class="callout amber" style="margin-top:8px;">
+        <span class="callout-icon">⚠</span>
+        <span><strong>Nunca use:</strong> @gmail.com · @hotmail.com · @mercadopago.com · conta pessoal Anthropic. Somente @mercadolivre.com funciona.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">Extensão Claude Code não aparece para instalar (VSCode)</div>
+        <div class="error-symptom">Buscar "Claude Code" na aba Extensions não retorna resultados, ou o botão Install está bloqueado</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">Política corporativa pode bloquear instalação de extensões via Marketplace. Ou o VSCode está configurado para usar um Marketplace interno.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Tente instalar via linha de comando: <code>code --install-extension anthropic.claude-code</code></div>
+        <div class="fix-step">Se bloqueado, abra um ticket de TI solicitando liberação da extensão <code>anthropic.claude-code</code> no Marketplace</div>
+        <div class="fix-step">Alternativa: use o Claude Code via terminal (<code>claude</code> CLI) sem a extensão VSCode</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Sign in abre o browser mas o VSCode não confirma o login</div>
+        <div class="error-symptom">Browser mostra "Authorization successful" mas o VSCode continua pedindo login</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O callback de autenticação (<code>vscode://</code> deep link) foi bloqueado pelo browser ou firewall corporativo.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Quando o browser exibir "Authorization successful", copie o código/URL exibido na página</div>
+        <div class="fix-step">Cole no campo que o VSCode mostra no terminal ou na caixa de diálogo de autenticação</div>
+        <div class="fix-step">Se o browser pergunta "Abrir VSCode?", clique em <strong>Permitir sempre</strong></div>
+        <div class="fix-step">Se o popup não aparecer, tente desabilitar temporariamente o proxy corporativo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Licença não ativada / "No active subscription"</div>
+        <div class="error-symptom">Claude Code instala e autentica mas mostra mensagem de plano ou sem acesso</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">A licença corporativa ainda não foi associada ao seu usuário no portal Azir.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Acesse o portal Azir interno da Meli e solicite a licença Claude Code</div>
+        <div class="fix-step">Após aprovação, reinicie o VSCode e faça login novamente com @mercadolivre.com</div>
+        <div class="fix-step">Se já tem licença aprovada mas continua o erro, execute no terminal: <code>claude --logout</code> e refaça o login</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr/>
+
+<!-- SECTION: GOOGLE CLOUD -->
+<div class="section" id="gcloud">
+  <div class="section-label gcloud">☁ Google Cloud / BigQuery</div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">gcloud: comando não encontrado após instalar o SDK</div>
+        <div class="error-symptom"><code>'gcloud' is not recognized as an internal or external command</code> no PowerShell ou terminal do VSCode</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O instalador do Cloud SDK adiciona o caminho ao PATH, mas a sessão do terminal estava aberta antes da instalação.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Feche completamente o VSCode (incluindo todos os terminais)</div>
+        <div class="fix-step">Reabra o VSCode — o novo PATH já é carregado automaticamente</div>
+        <div class="fix-step">Teste: <code>gcloud --version</code></div>
+      </div>
+      <div class="callout blue" style="margin-top:8px;">
+        <span class="callout-icon">ℹ</span>
+        <span>No Windows, o instalador do Cloud SDK cria um atalho "Google Cloud SDK Shell". Abra por ele na primeira vez para garantir que o PATH está correto.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon red">❌</div>
+      <div>
+        <div class="error-title">BigQuery retorna "Application Default Credentials not found"</div>
+        <div class="error-symptom">Scripts Python falham com <code>google.auth.exceptions.DefaultCredentialsError</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">Apenas <code>gcloud auth login</code> não é suficiente para bibliotecas Python. É necessário o <strong>Application Default Credentials (ADC)</strong>.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Execute no terminal:</div>
+      </div>
+      <div class="code-block">gcloud auth application-default login</div>
+      <div class="fix-steps">
+        <div class="fix-step">Faça login com <strong>@mercadolivre.com</strong> no browser que abrir</div>
+        <div class="fix-step">Verifique: <code>gcloud auth application-default print-access-token</code> deve retornar um token</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">BigQuery: "Access Denied" em tabela meli-bi-data</div>
+        <div class="error-symptom"><code>403 Access Denied: Table meli-bi-data.WHOWNER.XXX</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">Seu usuário @mercadolivre.com precisa de permissão explícita nas tabelas do projeto <code>meli-bi-data</code>.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Confirme que está usando o <strong>billing project correto</strong> nas queries: <code>ddme000162-8l63cxvebh8-furyid</code></div>
+        <div class="fix-step">Se ainda receber 403, solicite acesso ao dataset via CloudController ou abertura de ticket para o time de dados</div>
+        <div class="fix-step">Verifique se o <code>gcloud config get-value project</code> retorna o billing project correto</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr/>
+
+<!-- SECTION: VSCODE -->
+<div class="section" id="vscode">
+  <div class="section-label vscode">💻 VSCode</div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Git Bash não aparece na lista de terminais do VSCode</div>
+        <div class="error-symptom">Ao abrir o dropdown de terminais, o Git Bash não é listado como opção</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O VSCode precisa ser informado manualmente sobre o path do Git Bash após a instalação do Git.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Abra as configurações do VSCode: <code>Ctrl+,</code> → busque <code>terminal.integrated.profiles.windows</code></div>
+        <div class="fix-step">Ou abra o arquivo <code>settings.json</code> (<code>Ctrl+Shift+P</code> → "Open User Settings JSON") e adicione:</div>
+      </div>
+      <div class="code-block">"terminal.integrated.profiles.windows": {
+  "Git Bash": {
+    "source": "Git Bash"
+  }
+},
+"terminal.integrated.defaultProfile.windows": "Git Bash"</div>
+      <div class="fix-steps">
+        <div class="fix-step">Feche e reabra o terminal no VSCode (<code>Ctrl+`</code>)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Terminal não abre no VSCode (ou abre mas fecha imediatamente)</div>
+        <div class="error-symptom">O painel de terminal aparece vazio ou fecha sozinho após abrir com <code>Ctrl+`</code></div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O shell padrão configurado não existe no sistema, ou o perfil do PowerShell tem um erro que causa falha na inicialização.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Acesse <code>Ctrl+Shift+P</code> → <strong>"Terminal: Select Default Profile"</strong></div>
+        <div class="fix-step">Selecione <strong>PowerShell</strong> ou <strong>Command Prompt</strong> como fallback</div>
+        <div class="fix-step">Se ainda falhar, execute o VSCode com: <code>code --disable-extensions</code> para testar sem extensões</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Extensão "Claude Code" não é encontrada na busca do Marketplace</div>
+        <div class="error-symptom">Buscar por "Claude Code" no painel Extensions retorna apenas resultados irrelevantes</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O Marketplace interno da Meli pode não incluir todas as extensões externas.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Tente buscar pelo ID exato: <code>anthropic.claude-code</code></div>
+        <div class="fix-step">Ou instale via terminal: <code>code --install-extension anthropic.claude-code</code></div>
+        <div class="fix-step">Se o Marketplace interno bloquear, acesse <code>Ctrl+Shift+P</code> → "Extensions: Install from VSIX" para instalar manualmente via arquivo <code>.vsix</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">
+      <div class="err-icon amber">⚠</div>
+      <div>
+        <div class="error-title">Claude responde mas não consegue ler/editar arquivos do projeto</div>
+        <div class="error-symptom">O Claude diz que não encontra o arquivo ou retorna erro de permissão ao tentar editar</div>
+      </div>
+    </div>
+    <div class="error-body">
+      <div class="cause-label">Causa</div>
+      <p class="fix-step">O VSCode foi aberto sem a pasta do projeto como workspace. O Claude só acessa arquivos dentro do workspace aberto.</p>
+      <div class="cause-label" style="margin-top:8px;">Solução</div>
+      <div class="fix-steps">
+        <div class="fix-step">Use <strong>File → Open Folder</strong> e abra a pasta raiz do projeto (ex: <code>cco-fm-workspace</code>)</div>
+        <div class="fix-step">Nunca abra apenas um arquivo avulso — sempre abra a <strong>pasta</strong></div>
+        <div class="fix-step">O título da janela do VSCode deve mostrar o nome da pasta, não um arquivo</div>
+      </div>
+      <div class="callout blue" style="margin-top:8px;">
+        <span class="callout-icon">ℹ</span>
+        <span>O Claude Code trabalha com o <em>working directory</em> do VSCode. Sem abrir a pasta correta, ele não tem contexto do projeto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>Meli CCO Analytics · First Mile · Atualizado: 2026-04</div>
+  <div>Acesso liberado para todos os colaboradores Meli</div>
+</div>
+
+</body>
+</html>
